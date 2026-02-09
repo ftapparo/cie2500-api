@@ -1,0 +1,29 @@
+{
+  "name": "cie2500-api",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "tsx src/server.ts",
+    "build": "tsc -p .",
+    "start": "node dist/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bitwise": "^2.2.1",
+    "cors": "^2.8.5",
+    "crc": "^4.3.2",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.2.1",
+    "@types/ws": "^8.18.1",
+    "tsx": "^4.20.4",
+    "typescript": "^5.9.2"
+  }
+}
