@@ -1,13 +1,15 @@
-import { Router } from 'express';
+import express from 'express';
 import { healthCheck } from '../controllers/health.controller';
-import type { CieStateService } from '../services/cie-state.service';
+import { CieManager } from '../core/cie-manager';
 
-export default function healthRoutes(stateService: CieStateService) {
-  const router = Router();
+export default (cieInstance: CieManager) => {
 
-  router.get('/health', (req, res) => healthCheck(req, res, stateService));
-  router.get('/healthcheck', (req, res) => healthCheck(req, res, stateService));
+  const router = express.Router();
 
+  // Rota de health check
+  router.get('/health', (req, res) => healthCheck(req, res, cieInstance));
+
+  // Rota de health check alternativa
+  router.get('/healthcheck', (req, res) => healthCheck(req, res, cieInstance));
   return router;
-}
-
+};

@@ -6,16 +6,13 @@ import {
   listLogs,
   reconnectConnection,
 } from '../controllers/cie.controller';
-import type { CieStateService } from '../services/cie-state.service';
-import type { CieLogService } from '../services/cie-log.service';
-import type { CieCommandService } from '../services/cie-command.service';
+import type { CieManager } from '../core/cie-manager';
 
-export default function cieRoutes(
-  stateService: CieStateService,
-  logService: CieLogService,
-  commandService: CieCommandService
-) {
+export default function cieRoutes(cieInstance: CieManager) {
   const router = Router();
+  const stateService = cieInstance.getStateService();
+  const logService = cieInstance.getLogService();
+  const commandService = cieInstance.getCommandService();
 
   router.get('/cie/status', (req, res) => getCieStatus(req, res, stateService));
   router.get('/cie/alarms/active', (req, res) => getActiveAlarms(req, res, stateService, logService));
@@ -35,4 +32,3 @@ export default function cieRoutes(
 
   return router;
 }
-

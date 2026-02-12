@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
 import { ok } from '../http/response';
-import type { CieStateService } from '../services/cie-state.service';
+import type { CieManager } from '../core/cie-manager';
 
-export function healthCheck(_req: Request, res: Response, stateService: CieStateService) {
-  const snap = stateService.getSnapshot();
+export const healthCheck = (_req: Request, res: Response, cieInstance: CieManager) => {
+  const snap = cieInstance.getStateService().getSnapshot();
   const status = snap.connected ? 'OK' : 'DEGRADED';
 
   return ok(res, {
@@ -15,5 +15,4 @@ export function healthCheck(_req: Request, res: Response, stateService: CieState
     lastUpdated: snap.lastUpdated,
     lastError: snap.lastError,
   });
-}
-
+};
