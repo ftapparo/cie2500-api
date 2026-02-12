@@ -1,0 +1,29 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "CIE2500 Service API",
+    "version": "1.0.0",
+    "description": "Microserviço REST + WebSocket para central CIE2500."
+  },
+  "paths": {
+    "/v2/api/health": { "get": { "summary": "Healthcheck" } },
+    "/v2/api/healthcheck": { "get": { "summary": "Healthcheck alternativo" } },
+    "/v2/api/cie/status": { "get": { "summary": "Snapshot da central" } },
+    "/v2/api/cie/alarms/active": { "get": { "summary": "Estado de alarmes ativos" } },
+    "/v2/api/cie/logs": {
+      "get": {
+        "summary": "Lista logs",
+        "parameters": [
+          { "in": "query", "name": "type", "schema": { "type": "string" } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer" } },
+          { "in": "query", "name": "cursor", "schema": { "type": "string" } }
+        ]
+      }
+    },
+    "/v2/api/cie/commands/silence": { "post": { "summary": "Silenciar alarme/sirene" } },
+    "/v2/api/cie/commands/release": { "post": { "summary": "Liberar sirenes" } },
+    "/v2/api/cie/commands/restart": { "post": { "summary": "Reiniciar central" } },
+    "/v2/api/cie/connection/reconnect": { "post": { "summary": "Reconectar sessão CIE" } }
+  }
+}
+

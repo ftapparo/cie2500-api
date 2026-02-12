@@ -1,185 +1,109 @@
-import express from 'express';
+import 'dotenv/config';
 import cors from 'cors';
+import express from 'express';
 import http from 'http';
-import dotenv from 'dotenv';
-dotenv.config();
+import swaggerUi from 'swagger-ui-express';
+import swaggerDocument from './swagger.json';
+import healthRoutes from './routes/health.routes';
+import cieRoutes from './routes/cie.routes';
+import { CieClient } from './core/cie-client';
+import { CieLogService } from './services/cie-log.service';
+import { CieStateService } from './services/cie-state.service';
+import { CieCommandService } from './services/cie-command.service';
+import { CieWsBroker } from './ws/cie-ws-broker';
 
-import { CIE2500Native } from './native/CIE2500Native';
-import type { NomeModelo, Mac, Info, Status, DataHora } from './types/cie';
-
-const PORT        = Number(process.env.PORT || 3000);
-const CIE_IP      = process.env.CIE_IP || '192.168.0.4';
-const CIE_PASS    = process.env.CIE_PASSWORD || '444444';
-const CIE_END     = Number(process.env.CIE_ENDERECO ?? 0);
-const POLL_MS     = Number(process.env.POLL_MS || 3000);
+const PORT = Number(process.env.PORT || 4021);
+const CIE_IP = process.env.CIE_IP || '192.168.0.4';
+const CIE_PASSWORD = process.env.CIE_PASSWORD || '444444';
+const CIE_ENDERECO = Number(process.env.CIE_ENDERECO ?? 0);
+const CIE_POLL_MS = Number(process.env.CIE_POLL_MS || 4000);
+const CIE_REQUEST_TIMEOUT_MS = Number(process.env.CIE_REQUEST_TIMEOUT_MS || 10000);
+const CIE_LOG_BACKFILL_LIMIT = Number(process.env.CIE_LOG_BACKFILL_LIMIT || 50);
+const CIE_LOG_RING_SIZE = Number(process.env.CIE_LOG_RING_SIZE || 1000);
 
 const app = express();
-app.use(cors());
+const server = http.createServer(app);
+
+const cieClient = new CieClient({
+  ip: CIE_IP,
+  password: CIE_PASSWORD,
+  endereco: CIE_ENDERECO,
+  timeoutMs: CIE_REQUEST_TIMEOUT_MS,
+});
+const cieLogService = new CieLogService(CIE_LOG_RING_SIZE);
+const cieStateService = new CieStateService(cieClient, cieLogService, {
+  pollMs: CIE_POLL_MS,
+  logBackfillLimit: CIE_LOG_BACKFILL_LIMIT,
+});
+const cieCommandService = new CieCommandService(cieClient);
+const wsBroker = new CieWsBroker(server, '/v2/ws');
+
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: '*',
+  credentials: false,
+}));
+app.options(/.*/, cors());
 app.use(express.json());
 
-const server = http.createServer(app);
-const cie = new CIE2500Native();
+app.use('/v2/api', healthRoutes(cieStateService));
+app.use('/v2/api', cieRoutes(cieStateService, cieLogService, cieCommandService));
 
-// ------- Estado em memória -------
-type CentralSnapshot = {
-  connected: boolean;
-  nomeModelo?: NomeModelo;
-  mac?: Mac;
-  info?: Info;
-  dataHora?: DataHora;
-  status?: Status;
-  lastUpdated?: number; // epoch ms
-  lastError?: string | null;
-};
+app.use('/v2/swagger', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.get('/v2/apispec_1.json', (_req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerDocument);
+});
 
-let snap: CentralSnapshot = {
-  connected: false,
-  lastError: null,
-};
+app.use((_req, res) => {
+  res.status(404).send();
+});
 
-let pollTimer;
-let reconnecting = false;
+cieStateService.on('connection.status.changed', (data) => {
+  wsBroker.publish('connection.status.changed', data);
+});
+cieStateService.on('cie.status.updated', (data) => {
+  wsBroker.publish('cie.status.updated', data);
+});
+cieStateService.on('cie.alarm.triggered', (data) => {
+  wsBroker.publish('cie.alarm.triggered', data);
+});
+cieStateService.on('cie.log.received', (data) => {
+  wsBroker.publish('cie.log.received', data);
+});
 
-// ------- Funções utilitárias -------
-async function initialFetch() {
-  // Busca um “pacote” inicial de dados após conectar
-  const [nomeModelo, mac, info, dataHora, status] = await Promise.all([
-    cie.nomeModelo(CIE_IP, CIE_END),
-    cie.mac(CIE_IP, CIE_END),
-    cie.info(CIE_IP, CIE_END),
-    cie.dataHora(CIE_IP, CIE_END),
-    cie.status(CIE_IP, CIE_END),
-  ]);
-
-  snap = {
-    ...snap,
-    connected: true,
-    nomeModelo, mac, info, dataHora, status,
-    lastUpdated: Date.now(),
-    lastError: null,
-  };
-}
-
-async function pollOnce() {
-  try {
-    const [status, dataHora] = await Promise.all([
-      cie.status(CIE_IP, CIE_END),
-      cie.dataHora(CIE_IP, CIE_END),
-    ]);
-    snap.status = status;
-    snap.dataHora = dataHora;
-    snap.lastUpdated = Date.now();
-    snap.connected = true;
-    snap.lastError = null;
-  } catch (e: any) {
-    snap.lastError = e?.message || String(e);
-    // força reconexão assíncrona
-    triggerReconnect();
-  }
-}
-
-function startPolling() {
-  if (pollTimer) return;
-  pollTimer = setInterval(pollOnce, POLL_MS);
-  // se quiser permitir o processo encerrar mesmo com o timer:
-  // (pollTimer as any).unref?.();
-}
-
-function stopPolling() {
-  if (pollTimer) {
-    clearInterval(pollTimer);
-    pollTimer = null;
-  }
-}
-
-async function connectFlow() {
-  // Descoberta opcional (ajuda a sincronizar counters de cifra):
-  try { await cie.discover(true); } catch {}
-  const token = await cie.authenticate(CIE_IP, CIE_PASS, CIE_END);
-  await cie.startCommunication(CIE_IP, CIE_END, token);
-  await initialFetch();
-}
-
-async function reconnectFlow() {
-  if (reconnecting) return;
-  reconnecting = true;
-  try {
-    await cie.stopCommunication();
-  } catch {}
-  try {
-    await connectFlow();
-  } catch (e: any) {
-    snap.connected = false;
-    snap.lastError = e?.message || String(e);
-  } finally {
-    reconnecting = false;
-  }
-}
-
-function triggerReconnect() {
-  // agenda reconexão sem empilhar várias
-  if (!reconnecting) {
-    void reconnectFlow();
-  }
-}
-
-// ------- Bootstrap -------
-async function main() {
-  try {
-    await connectFlow();
-    startPolling();
-    console.log('[cie] conectado e em polling…');
-  } catch (e: any) {
-    snap.connected = false;
-    snap.lastError = e?.message || String(e);
-    console.error('[cie] falha ao conectar inicialmente:', snap.lastError);
-    // tenta reconectar em background
-    triggerReconnect();
-  }
-
+async function bootstrap() {
+  await cieStateService.start();
   server.listen(PORT, () => {
-    console.log(`[server] http://localhost:${PORT}`);
+    console.log(`[CIE] Service listening on port ${PORT}`);
   });
 }
 
-// ------- Rotas -------
-app.get('/health', (_req, res) => {
-  res.json({
-    ok: true,
-    connected: snap.connected,
-    lastUpdated: snap.lastUpdated ?? null,
-    lastError: snap.lastError ?? null,
-  });
-});
-
-app.get('/cie/info', (_req, res) => {
-  // retorna snapshot agregado da central
-  res.json({
-    connected: snap.connected,
-    nomeModelo: snap.nomeModelo ?? null,
-    mac: snap.mac ?? null,
-    info: snap.info ?? null,
-    dataHora: snap.dataHora ?? null,
-    status: snap.status ?? null,
-    lastUpdated: snap.lastUpdated ?? null,
-    lastError: snap.lastError ?? null,
-  });
-});
-
-// (Futuro) exemplos de rotas para comandos (ativar saída, bloquear, etc.)
-// app.post('/cie/outputs/:laco/:numero', async (req, res) => { … });
-
-
-// ------- Encerramento gracioso -------
 async function shutdown(code = 0) {
   try {
-    stopPolling();
-    await cie.shutdown();
-  } catch (e) {}
+    wsBroker.close();
+    await cieStateService.stop();
+  } catch {
+    // ignore shutdown errors
+  }
+
   server.close(() => process.exit(code));
 }
 
-process.on('SIGINT',  () => shutdown(0));
-process.on('SIGTERM', () => shutdown(0));
+process.on('SIGINT', () => { void shutdown(0); });
+process.on('SIGTERM', () => { void shutdown(0); });
+process.on('uncaughtException', (error) => {
+  console.error('[CIE] uncaughtException', error);
+  void shutdown(1);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('[CIE] unhandledRejection', reason);
+  void shutdown(1);
+});
 
-void main();
+void bootstrap().catch((error) => {
+  console.error('[CIE] bootstrap error', error);
+  process.exit(1);
+});
+

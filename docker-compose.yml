@@ -1,0 +1,12 @@
+version: '3.9'
+
+services:
+  cie:
+    build: .
+    container_name: nova-cie
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "${PORT:-4021}:4021"
+

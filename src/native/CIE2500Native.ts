@@ -44,6 +44,7 @@ export class CIE2500Native extends EventEmitter {
   private RemoteOpperation: any;
   private RemoteConnection: any;
   private connected = false;
+  private requestTimeoutMs = 10000;
 
   constructor() {
     super();
@@ -63,6 +64,10 @@ export class CIE2500Native extends EventEmitter {
     this.RemoteConnection   = remoteConnectionFactory(this.udp);
   }
 
+  setRequestTimeoutMs(ms: number) {
+    if (Number.isFinite(ms) && ms > 0) this.requestTimeoutMs = ms;
+  }
+
   /** Descobre centrais por multicast/broadcast e sincroniza counters da cifra */
   async discover(getNameMac = false): Promise<any> {
     // o udp.assign aceita boolean ou objeto; manter compatibilidade
@@ -80,7 +85,7 @@ export class CIE2500Native extends EventEmitter {
   async authenticate(ip: string, password: string, endereco = 0): Promise<Buffer> {
     // não chame bootstrap() aqui — o assign() já abriu sockets e sincronizou contadores
     this.udp.auth({ ip, password, endereco });
-    const res = await onceWithTimeout<any>(this, 'udp_autenticacao', 12000);
+    const res = await onceWithTimeout<any>(this, 'udp_autenticacao', this.requestTimeoutMs);
     const tokLike = res?.token;
     const token = Buffer.isBuffer(tokLike)
       ? tokLike
@@ -97,7 +102,7 @@ export class CIE2500Native extends EventEmitter {
     this.RemoteOpperation.startCommunication({ ip, endereco, token });
 
     // espere por qualquer um desses como "ok": alguns firmwares não emitem udp_start_communication
-    const ready = waitAny(this, ['udp_nome_e_modelo', 'udp_status'], 10000);
+    const ready = waitAny(this, ['udp_nome_e_modelo', 'udp_status'], this.requestTimeoutMs);
 
     // manda um comando simples (nome/modelo funciona até sem auth)
     this.RemoteOpperation.getNameModel({ ip, endereco });
@@ -124,27 +129,27 @@ export class CIE2500Native extends EventEmitter {
 
   async status(ip: string, endereco: number): Promise<Status> {
     this.RemoteOpperation.getStatus({ ip, endereco });
-    return onceWithTimeout<Status>(this, 'udp_status', 10000);
+    return onceWithTimeout<Status>(this, 'udp_status', this.requestTimeoutMs);
   }
 
   async nomeModelo(ip: string, endereco: number): Promise<NomeModelo> {
     this.RemoteOpperation.getNameModel({ ip, endereco });
-    return onceWithTimeout<NomeModelo>(this, 'udp_nome_e_modelo', 10000);
+    return onceWithTimeout<NomeModelo>(this, 'udp_nome_e_modelo', this.requestTimeoutMs);
   }
 
   async mac(ip: string, endereco: number): Promise<Mac> {
     this.RemoteOpperation.getMac({ ip, endereco });
-    return onceWithTimeout<Mac>(this, 'udp_mac', 10000);
+    return onceWithTimeout<Mac>(this, 'udp_mac', this.requestTimeoutMs);
   }
 
   async info(ip: string, endereco: number): Promise<Info> {
     this.RemoteOpperation.getInfo({ ip, endereco });
-    return onceWithTimeout<Info>(this, 'udp_info', 10000);
+    return onceWithTimeout<Info>(this, 'udp_info', this.requestTimeoutMs);
   }
 
   async dataHora(ip: string, endereco: number): Promise<DataHora> {
     this.RemoteOpperation.getDateTime({ ip, endereco });
-    const raw = await onceWithTimeout<any>(this, 'udp_data_hora', 10000);
+    const raw = await onceWithTimeout<any>(this, 'udp_data_hora', this.requestTimeoutMs);
 
     // Corrige 'utc' a partir do timestamp (evita 1925)
     const ts = Number(raw?.timestamp);
@@ -155,7 +160,42 @@ export class CIE2500Native extends EventEmitter {
     return { timestamp: ts, utc: utcISO, local: localBR };
   }
 
+  async getEvent(
+    ip: string,
+    endereco: number,
+    evento: 'alarme' | 'falha' | 'supervisao' | 'bloqueio',
+    numero: number
+  ): Promise<any> {
+    this.RemoteOpperation.getEvent({ ip, endereco, evento, numero });
+    return onceWithTimeout<any>(this, `udp_evento#${numero}`, this.requestTimeoutMs);
+  }
+
+  async getLog(
+    ip: string,
+    endereco: number,
+    evento: 'alarme' | 'falha' | 'supervisao' | 'operacao',
+    numero: number
+  ): Promise<any> {
+    this.RemoteOpperation.getLog({ ip, endereco, evento, numero });
+    return onceWithTimeout<any>(this, `udp_log#${numero}`, this.requestTimeoutMs);
+  }
+
+  async sendButtonCommand(
+    ip: string,
+    endereco: number,
+    botao: number,
+    parametro: number,
+    identificador: number
+  ): Promise<any> {
+    this.RemoteOpperation.sendButtonCommand({ ip, endereco, botao, parametro, identificador });
+    return onceWithTimeout<any>(this, 'udp_enviar_comando', this.requestTimeoutMs);
+  }
+
   // ===== Eventos push (opcionalmente você pode criar "onStatus" tipado) =====
   onEvento(fn: (e: any) => void) { this.on('udp_evento', fn); return () => this.off('udp_evento', fn); }
   onLog(fn: (e: any) => void)    { this.on('udp_log', fn);    return () => this.off('udp_log', fn); }
+  onConnectionStatus(fn: (connected: boolean) => void) {
+    this.on('conn_status', fn);
+    return () => this.off('conn_status', fn);
+  }
 }
