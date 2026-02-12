@@ -43,8 +43,8 @@ export async function StartWebServer(cieInstance: CieManager): Promise<void> {
     /**
      * Registro das rotas principais da API.
      */
-    app.use('/v2/api', healthRoutes(cieInstance));
-    app.use('/v2/api', cieRoutes(cieInstance));
+    app.use('/v1/api', healthRoutes(cieInstance));
+    app.use('/v1/api', cieRoutes(cieInstance));
 
     /**
      * Rota para servir a documentação Swagger UI.

@@ -4,7 +4,7 @@ Microserviço REST + WebSocket para integração com central de incêndio Intelb
 
 ## Endpoints REST
 
-Base: `/v2/api`
+Base: `/v1/api`
 
 - `GET /health`
 - `GET /healthcheck`
@@ -18,12 +18,12 @@ Base: `/v2/api`
 
 Swagger:
 
-- `GET /v2/swagger`
-- `GET /v2/apispec_1.json`
+- `GET /swagger`
+- `GET /apispec_1.json`
 
 ## WebSocket
 
-Endpoint: `/v2/ws`
+Endpoint: `/v1/ws`
 
 Eventos:
 
@@ -69,25 +69,24 @@ docker compose up --build -d
 ## Runbook de validação em campo
 
 1. Confirmar conexão:
-- chamar `GET /v2/api/health` e validar `connected=true`.
+- chamar `GET /v1/api/health` e validar `connected=true`.
 
 2. Validar evento de disparo:
 - simular disparo na central;
-- confirmar incremento em `/v2/api/cie/alarms/active`;
-- confirmar recebimento de `cie.alarm.triggered` no `/v2/ws`.
+- confirmar incremento em `/v1/api/cie/alarms/active`;
+- confirmar recebimento de `cie.alarm.triggered` no `/v1/ws`.
 
 3. Validar comando de silenciar:
 - ajustar `CIE_CMD_SILENCE_*`;
-- chamar `POST /v2/api/cie/commands/silence`;
+- chamar `POST /v1/api/cie/commands/silence`;
 - validar LED/estado de sirene silenciada na central e no status.
 
 4. Validar comando de liberar:
 - ajustar `CIE_CMD_RELEASE_*`;
-- chamar `POST /v2/api/cie/commands/release`;
+- chamar `POST /v1/api/cie/commands/release`;
 - validar retomada das sirenes.
 
 5. Validar comando de reiniciar central:
 - ajustar `CIE_CMD_RESTART_*`;
-- chamar `POST /v2/api/cie/commands/restart`;
+- chamar `POST /v1/api/cie/commands/restart`;
 - validar transição de conexão e retorno da comunicação.
-

@@ -51,7 +51,7 @@ export class CieManager {
   public bindWebSocket(server: http.Server) {
     if (this.wsBroker) return;
 
-    this.wsBroker = new CieWsBroker(server, '/v2/ws');
+    this.wsBroker = new CieWsBroker(server, '/v1/ws');
     this.cieStateService.on('connection.status.changed', (data) => {
       this.wsBroker?.publish('connection.status.changed', data);
     });
@@ -84,4 +84,3 @@ export class CieManager {
     await this.cieStateService.stop();
   }
 }
-

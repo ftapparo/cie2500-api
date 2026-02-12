@@ -11,7 +11,7 @@ export class CieWsBroker {
   private readonly path: string;
   private readonly wss: WebSocketServer;
 
-  constructor(server: http.Server, path = '/v2/ws') {
+  constructor(server: http.Server, path = '/v1/ws') {
     this.path = path;
     this.wss = new WebSocketServer({ noServer: true });
 
@@ -54,4 +54,3 @@ export class CieWsBroker {
     this.wss.close();
   }
 }
-

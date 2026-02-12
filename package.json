@@ -1,31 +1,45 @@
 {
-  "name": "cie2500-api",
-  "version": "1.0.0",
-  "type": "commonjs",
-  "scripts": {
-    "dev": "tsx src/server.ts",
-    "build": "tsc -p .",
-    "start": "node dist/server.js"
+  "name": "nova-cie",
+  "version": "2.0.0",
+  "description": "Aplicacao de integracao com central de incendio CIE2500 - Condominio Nova Residence",
+  "homepage": "https://github.com/ftapparo/cie2500-api#readme",
+  "bugs": {
+    "url": "https://github.com/ftapparo/cie2500-api/issues"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ftapparo/cie2500-api.git"
+  },
+  "license": "MIT",
+  "author": "Flavio Eduardo Tapparo",
+  "type": "commonjs",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "dotenv -e .env -- cross-env 'NODE_ENV=development' ts-node-dev --respawn src/server.ts"
+  },
   "dependencies": {
     "bitwise": "^2.2.1",
     "cors": "^2.8.5",
     "crc": "^4.3.2",
-    "dotenv": "^17.2.1",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.5.0",
+    "dotenv-cli": "^8.0.0",
     "express": "^5.1.0",
     "swagger-ui-express": "^5.0.1",
     "ws": "^8.18.3"
   },
   "devDependencies": {
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.3",
-    "@types/node": "^24.2.1",
+    "@types/cors": "^2",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.13.11",
     "@types/swagger-ui-express": "^4.1.8",
     "@types/ws": "^8.18.1",
-    "tsx": "^4.20.4",
-    "typescript": "^5.9.2"
+    "@typescript-eslint/eslint-plugin": "^8.14.0",
+    "@typescript-eslint/parser": "^8.14.0",
+    "eslint": "^9.15.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.6.3"
   }
 }

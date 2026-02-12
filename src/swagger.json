@@ -3,27 +3,308 @@
   "info": {
     "title": "CIE2500 Service API",
     "version": "1.0.0",
-    "description": "Microserviço REST + WebSocket para central CIE2500."
+    "description": "Microservico REST + WebSocket para central CIE2500. Realtime via WebSocket em /v1/ws."
   },
+  "servers": [
+    {
+      "url": "http://localhost:4021"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Monitoramento",
+      "description": "Saude e disponibilidade do servico."
+    },
+    {
+      "name": "CIE",
+      "description": "Status, alarmes e logs da central."
+    },
+    {
+      "name": "Comandos",
+      "description": "Comandos operacionais criticos da central."
+    }
+  ],
   "paths": {
-    "/v2/api/health": { "get": { "summary": "Healthcheck" } },
-    "/v2/api/healthcheck": { "get": { "summary": "Healthcheck alternativo" } },
-    "/v2/api/cie/status": { "get": { "summary": "Snapshot da central" } },
-    "/v2/api/cie/alarms/active": { "get": { "summary": "Estado de alarmes ativos" } },
-    "/v2/api/cie/logs": {
+    "/v1/api/health": {
       "get": {
-        "summary": "Lista logs",
-        "parameters": [
-          { "in": "query", "name": "type", "schema": { "type": "string" } },
-          { "in": "query", "name": "limit", "schema": { "type": "integer" } },
-          { "in": "query", "name": "cursor", "schema": { "type": "string" } }
-        ]
+        "tags": ["Monitoramento"],
+        "summary": "Healthcheck principal",
+        "responses": {
+          "200": {
+            "description": "Servico ativo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
       }
     },
-    "/v2/api/cie/commands/silence": { "post": { "summary": "Silenciar alarme/sirene" } },
-    "/v2/api/cie/commands/release": { "post": { "summary": "Liberar sirenes" } },
-    "/v2/api/cie/commands/restart": { "post": { "summary": "Reiniciar central" } },
-    "/v2/api/cie/connection/reconnect": { "post": { "summary": "Reconectar sessão CIE" } }
+    "/v1/api/healthcheck": {
+      "get": {
+        "tags": ["Monitoramento"],
+        "summary": "Healthcheck alternativo",
+        "responses": {
+          "200": {
+            "description": "Servico ativo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/api/cie/status": {
+      "get": {
+        "tags": ["CIE"],
+        "summary": "Snapshot atual da central",
+        "responses": {
+          "200": {
+            "description": "Status retornado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/api/cie/alarms/active": {
+      "get": {
+        "tags": ["CIE"],
+        "summary": "Alarmes ativos e counters",
+        "responses": {
+          "200": {
+            "description": "Resumo de alarmes ativos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/api/cie/logs": {
+      "get": {
+        "tags": ["CIE"],
+        "summary": "Lista logs normalizados",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "type",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["alarme", "falha", "supervisao", "operacao"]
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista paginada de logs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parametro invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/api/cie/commands/silence": {
+      "post": {
+        "tags": ["Comandos"],
+        "summary": "Silenciar alarme/sirene",
+        "responses": {
+          "200": {
+            "description": "Comando executado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Comando nao mapeado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/api/cie/commands/release": {
+      "post": {
+        "tags": ["Comandos"],
+        "summary": "Liberar sirenes",
+        "responses": {
+          "200": {
+            "description": "Comando executado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Comando nao mapeado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/api/cie/commands/restart": {
+      "post": {
+        "tags": ["Comandos"],
+        "summary": "Reiniciar central",
+        "responses": {
+          "200": {
+            "description": "Comando executado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Comando nao mapeado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/api/cie/connection/reconnect": {
+      "post": {
+        "tags": ["Comandos"],
+        "summary": "Forcar reconexao com a central",
+        "responses": {
+          "200": {
+            "description": "Reconexao executada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Falha ao reconectar",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ApiResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "errors": {
+            "nullable": true
+          }
+        },
+        "required": ["data", "message", "errors"]
+      },
+      "ApiErrorResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "nullable": true,
+            "example": null
+          },
+          "message": {
+            "type": "string",
+            "example": "Erro de validacao"
+          },
+          "errors": {
+            "nullable": true
+          }
+        },
+        "required": ["data", "message", "errors"]
+      }
+    }
   }
 }
 

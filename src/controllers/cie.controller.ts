@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { fail, ok } from '../http/response';
 import type { CieStateService } from '../services/cie-state.service';
 import type { CieLogService } from '../services/cie-log.service';
 import type { CieCommandService, CommandAction } from '../services/cie-command.service';
@@ -14,7 +13,7 @@ function parseLimit(value: unknown, fallback = 50) {
 }
 
 export function getCieStatus(_req: Request, res: Response, stateService: CieStateService) {
-  return ok(res, stateService.getSnapshot());
+  return res.ok(stateService.getSnapshot());
 }
 
 export function getActiveAlarms(_req: Request, res: Response, stateService: CieStateService, logService: CieLogService) {
@@ -25,13 +24,13 @@ export function getActiveAlarms(_req: Request, res: Response, stateService: CieS
     supervisao: Number(snap.status?.status?.supervisao || 0),
     bloqueio: Number(snap.status?.status?.bloqueio || 0),
   };
-  return ok(res, logService.alarmSnapshot(counters));
+  return res.ok(logService.alarmSnapshot(counters));
 }
 
 export function listLogs(req: Request, res: Response, logService: CieLogService) {
   const type = req.query.type;
   if (typeof type === 'string' && !LOG_TYPES.includes(type as CieLogType)) {
-    return fail(res, `Parâmetro type inválido. Use: ${LOG_TYPES.join(', ')}.`, 400);
+    return res.fail(`Parametro type invalido. Use: ${LOG_TYPES.join(', ')}.`, 400);
   }
 
   const limit = parseLimit(req.query.limit, 50);
@@ -43,7 +42,7 @@ export function listLogs(req: Request, res: Response, logService: CieLogService)
     cursor,
   });
 
-  return ok(res, {
+  return res.ok({
     type: typeof type === 'string' ? type : 'all',
     limit,
     cursor: cursor ?? null,
@@ -53,7 +52,7 @@ export function listLogs(req: Request, res: Response, logService: CieLogService)
 }
 
 export async function executeCommand(
-  req: Request,
+  _req: Request,
   res: Response,
   action: CommandAction,
   commandService: CieCommandService,
@@ -62,25 +61,25 @@ export async function executeCommand(
   try {
     const response = await commandService.execute(action);
     await stateService.refreshNow();
-    return ok(res, {
+    return res.ok({
       action,
       response,
       snapshot: stateService.getSnapshot(),
     });
   } catch (error: any) {
-    return fail(res, error?.message || 'Falha ao executar comando.', Number(error?.status || 500), error);
+    return res.fail(error?.message || 'Falha ao executar comando.', Number(error?.status || 500), error);
   }
 }
 
 export async function reconnectConnection(_req: Request, res: Response, stateService: CieStateService) {
   try {
     await stateService.reconnectNow();
-    return ok(res, {
-      message: 'Reconexão executada com sucesso.',
+    return res.ok({
+      message: 'Reconexao executada com sucesso.',
       snapshot: stateService.getSnapshot(),
     });
   } catch (error: any) {
-    return fail(res, 'Falha ao reconectar com a central.', 502, error?.message || error);
+    return res.fail('Falha ao reconectar com a central.', 502, error?.message || error);
   }
 }
 
