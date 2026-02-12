@@ -17,7 +17,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
-    "dev": "dotenv -e .env -- cross-env 'NODE_ENV=development' ts-node-dev --respawn src/server.ts"
+    "dev": "dotenv -e .env -- cross-env 'NODE_ENV=development' ts-node-dev --files --respawn src/server.ts"
   },
   "dependencies": {
     "bitwise": "^2.2.1",
