@@ -29,11 +29,16 @@ async function startService(): Promise<void> {
       webserverPort: port,
     });
 
-    await cieInstance.connectToCie();
-    console.log(`[Server] Conectado a CIE (${cieInstance.antenna.name})`);
-
     await StartWebServer(cieInstance);
     console.log(`[Server] WebServer ativo na porta ${port}`);
+
+    void cieInstance.connectToCie()
+      .then(() => {
+        console.log(`[Server] Conectado a CIE (${cieInstance?.fireCentral.name})`);
+      })
+      .catch((error) => {
+        console.error('[Server] Falha na conexao inicial com a CIE:', error);
+      });
   } catch (err) {
     console.error('[Server] Erro na inicializacao:', err);
     process.exit(1);
@@ -53,4 +58,3 @@ async function startService(): Promise<void> {
 }
 
 void startService();
-

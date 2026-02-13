@@ -11,7 +11,7 @@ export type CieManagerConfig = {
 };
 
 export class CieManager {
-  public antenna: CieManagerConfig;
+  public fireCentral: CieManagerConfig;
   private wsBroker: CieWsBroker | null = null;
 
   private readonly cieClient: CieClient;
@@ -20,7 +20,7 @@ export class CieManager {
   private readonly cieCommandService: CieCommandService;
 
   constructor(config: CieManagerConfig) {
-    this.antenna = config;
+    this.fireCentral = config;
 
     const CIE_IP = process.env.CIE_IP || '192.168.0.4';
     const CIE_PASSWORD = process.env.CIE_PASSWORD || '444444';

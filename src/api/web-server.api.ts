@@ -12,7 +12,7 @@ import { CieManager } from '../core/cie-manager';
 
 export async function StartWebServer(cieInstance: CieManager): Promise<void> {
     const app = express();
-    const port = cieInstance.antenna.webserverPort;
+    const port = cieInstance.fireCentral.webserverPort;
     const server = http.createServer(app);
 
     /**

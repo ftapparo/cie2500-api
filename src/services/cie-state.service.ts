@@ -108,7 +108,9 @@ export class CieStateService extends EventEmitter {
       this.previousCounters = getCounters(initial.status);
       this.setConnected(true);
       this.emit('cie.status.updated', this.getSnapshot());
-      await this.backfillAllTypes();
+      void this.backfillAllTypes().catch(() => {
+        // ignore initial backfill failures
+      });
     } catch (error: any) {
       this.snapshot.lastError = error?.message || String(error);
       this.setConnected(false);
@@ -178,7 +180,9 @@ export class CieStateService extends EventEmitter {
       this.previousCounters = getCounters(initial.status);
       this.setConnected(true);
       this.emit('cie.status.updated', this.getSnapshot());
-      await this.backfillAllTypes();
+      void this.backfillAllTypes().catch(() => {
+        // ignore reconnect backfill failures
+      });
     } catch (error: any) {
       this.snapshot.lastError = error?.message || String(error);
       this.setConnected(false);
@@ -252,4 +256,3 @@ export class CieStateService extends EventEmitter {
     this.setConnected(false);
   }
 }
-
