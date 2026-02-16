@@ -108,9 +108,9 @@ export class CieClient {
   }
 
   async sendButtonCommand(button: number, parameter: number, identifier: number): Promise<any> {
-    return this.queue.run(async () =>
-      this.cie.sendButtonCommand(this.opts.ip, this.opts.endereco, button, parameter, identifier)
-    );
+    // Comandos remotos precisam sair imediatamente.
+    // Se entrarem na fila, podem atrasar atrás de polling/backfill.
+    return this.cie.sendButtonCommand(this.opts.ip, this.opts.endereco, button, parameter, identifier);
   }
 
   async changeBlockDevice(
