@@ -38,6 +38,7 @@ export class CieStateService extends EventEmitter {
 
   private snapshot: CieStateSnapshot = {
     connected: false,
+    restartingUntil: null,
     nomeModelo: null,
     mac: null,
     info: null,
@@ -68,7 +69,26 @@ export class CieStateService extends EventEmitter {
   private setConnected(connected: boolean) {
     if (this.snapshot.connected === connected) return;
     this.snapshot.connected = connected;
+    if (connected) {
+      this.snapshot.restartingUntil = null;
+    }
     this.emit('connection.status.changed', { connected });
+  }
+
+  markRestarting(durationMs = 60000) {
+    const safeDuration = Math.max(5000, Math.min(300000, Math.floor(durationMs)));
+    this.snapshot.restartingUntil = Date.now() + safeDuration;
+    this.snapshot.lastError = null;
+    this.snapshot.reconnecting = true;
+    this.snapshot.reconnectAttempt = 0;
+    this.setConnected(false);
+    this.triggerReconnect();
+    this.emit('cie.status.updated', this.getSnapshot());
+  }
+
+  isRestarting(): boolean {
+    const until = Number(this.snapshot.restartingUntil || 0);
+    return Number.isFinite(until) && until > Date.now();
   }
 
   async start() {
@@ -98,6 +118,13 @@ export class CieStateService extends EventEmitter {
 
     this.client.onConnectionStatus((connected) => {
       this.setConnected(connected);
+      if (!connected) {
+        this.triggerReconnect();
+      } else {
+        this.snapshot.lastError = null;
+        this.snapshot.reconnecting = false;
+        this.snapshot.reconnectAttempt = 0;
+      }
     });
 
     try {
@@ -113,6 +140,7 @@ export class CieStateService extends EventEmitter {
       this.snapshot.lastUpdated = Date.now();
       this.snapshot.reconnecting = false;
       this.snapshot.reconnectAttempt = 0;
+      this.snapshot.restartingUntil = null;
       this.previousCounters = getCounters(initial.status);
       this.setConnected(true);
       this.emit('cie.status.updated', this.getSnapshot());
@@ -125,7 +153,7 @@ export class CieStateService extends EventEmitter {
           this.warmupPromise = null;
         });
     } catch (error: any) {
-      this.snapshot.lastError = error?.message || String(error);
+      this.snapshot.lastError = this.isRestarting() ? null : (error?.message || String(error));
       this.setConnected(false);
       this.triggerReconnect();
     }
@@ -158,6 +186,7 @@ export class CieStateService extends EventEmitter {
       this.snapshot.lastUpdated = Date.now();
       this.snapshot.lastError = null;
       this.snapshot.reconnecting = false;
+      this.snapshot.restartingUntil = null;
       this.setConnected(true);
 
       const currentCounters = getCounters(status);
@@ -170,7 +199,7 @@ export class CieStateService extends EventEmitter {
 
       this.emit('cie.status.updated', this.getSnapshot());
     } catch (error: any) {
-      this.snapshot.lastError = error?.message || String(error);
+      this.snapshot.lastError = this.isRestarting() ? null : (error?.message || String(error));
       this.setConnected(false);
       this.triggerReconnect();
     }
@@ -191,6 +220,7 @@ export class CieStateService extends EventEmitter {
       this.snapshot.lastUpdated = Date.now();
       this.snapshot.reconnecting = false;
       this.snapshot.reconnectAttempt = 0;
+      this.snapshot.restartingUntil = null;
       this.previousCounters = getCounters(initial.status);
       this.setConnected(true);
       this.emit('cie.status.updated', this.getSnapshot());
@@ -203,7 +233,7 @@ export class CieStateService extends EventEmitter {
           this.warmupPromise = null;
         });
     } catch (error: any) {
-      this.snapshot.lastError = error?.message || String(error);
+      this.snapshot.lastError = this.isRestarting() ? null : (error?.message || String(error));
       this.setConnected(false);
       this.triggerReconnect();
       throw error;
@@ -369,6 +399,7 @@ export class CieStateService extends EventEmitter {
       this.reconnectTimer = null;
     }
     await this.client.shutdown();
+    this.snapshot.restartingUntil = null;
     this.setConnected(false);
   }
 }

@@ -62,7 +62,7 @@ function parseOccurredAt(raw: any): string {
     const sec = Number(timeMatch[3]);
     const valid = [day, month, year, hour, min, sec].every(Number.isFinite);
     if (valid) {
-      return new Date(Date.UTC(year, month - 1, day, hour, min, sec)).toISOString();
+      return new Date(year, month - 1, day, hour, min, sec).toISOString();
     }
   }
 
@@ -82,7 +82,7 @@ function parseOccurredAt(raw: any): string {
     return new Date().toISOString();
   }
 
-  return new Date(Date.UTC(year, month - 1, day, hour, min, sec)).toISOString();
+  return new Date(year, month - 1, day, hour, min, sec).toISOString();
 }
 
 const DEVICE_TYPE_LABELS: Record<number, string> = {

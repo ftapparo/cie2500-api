@@ -32,10 +32,14 @@ export function getCieStatus(_req: Request, res: Response, stateService: CieStat
 export function getPanelStatus(_req: Request, res: Response, stateService: CieStateService, logService: CieLogService) {
   const snapshot = stateService.getSnapshot();
   const latestFailureEvent = logService.latestByType('falha', 1)[0] ?? null;
+  const restartingUntil = Number(snapshot.restartingUntil || 0);
+  const restarting = Number.isFinite(restartingUntil) && restartingUntil > Date.now();
 
   return res.ok({
     online: snapshot.connected,
     connected: snapshot.connected,
+    restarting,
+    restartingUntil: restarting ? restartingUntil : null,
     reconnecting: snapshot.reconnecting,
     reconnectAttempt: snapshot.reconnectAttempt,
     lastError: snapshot.lastError,
@@ -132,6 +136,18 @@ export async function executeCommand(
   commandService: CieCommandService,
   stateService: CieStateService
 ) {
+  const isRestartCommand = action === 'restart';
+  const isExpectedRestartTransitionError = (error: any): boolean => {
+    const status = Number(error?.status || 0);
+    const rawMessage = String(error?.message || '').toLowerCase();
+    if (status === 502 || status === 503 || status === 504) return true;
+    return rawMessage.includes('timeout')
+      || rawMessage.includes('network')
+      || rawMessage.includes('socket')
+      || rawMessage.includes('enetunreach')
+      || rawMessage.includes('econn');
+  };
+
   try {
     const response = await commandService.execute(action);
     const buttonStatus = String((response as any)?.resposta || '');
@@ -140,13 +156,42 @@ export async function executeCommand(
       (error as any).status = 409;
       throw error;
     }
-    await stateService.refreshNow();
+
+    if (isRestartCommand) {
+      stateService.markRestarting(60000);
+      setTimeout(() => {
+        void stateService.reconnectNow().catch(() => {
+          // reconnect loop remains active in state service
+        });
+      }, 3000);
+    } else {
+      await stateService.refreshNow();
+    }
+
     return res.ok({
       action,
       response,
       snapshot: stateService.getSnapshot(),
     });
   } catch (error: any) {
+    if (isRestartCommand && isExpectedRestartTransitionError(error)) {
+      stateService.markRestarting(60000);
+      setTimeout(() => {
+        void stateService.reconnectNow().catch(() => {
+          // reconnect loop remains active in state service
+        });
+      }, 3000);
+
+      return res.ok({
+        action,
+        response: {
+          resposta: 'StatusBotaoWaiting',
+          detalhe: 'Reinicio em andamento. Conexao sera restabelecida automaticamente.',
+        },
+        snapshot: stateService.getSnapshot(),
+      });
+    }
+
     return res.fail(error?.message || 'Falha ao executar comando.', Number(error?.status || 500), error);
   }
 }
