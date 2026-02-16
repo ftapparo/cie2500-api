@@ -31,15 +31,15 @@ module.exports = {
         bitMask = bitwise.byte
           .read(
             data[
-              POSICAO.POSICAO_MENSAGEM_INTERLIGACAO_SINCRONIZACAO_CENTRAIS_CONECTADAS +
-                1
+            POSICAO.POSICAO_MENSAGEM_INTERLIGACAO_SINCRONIZACAO_CENTRAIS_CONECTADAS +
+            1
             ]
           )
           .concat(
             bitwise.byte.read(
               data[
-                POSICAO
-                  .POSICAO_MENSAGEM_INTERLIGACAO_SINCRONIZACAO_CENTRAIS_CONECTADAS
+              POSICAO
+                .POSICAO_MENSAGEM_INTERLIGACAO_SINCRONIZACAO_CENTRAIS_CONECTADAS
               ]
             )
           );
@@ -56,7 +56,7 @@ module.exports = {
               ip: arrayToIp(
                 data,
                 POSICAO.POSICAO_MENSAGEM_INTERLIGACAO_SINCRONIZACAO_IP_ADRESS_DEVICES +
-                  4 * (endereco - 1)
+                4 * (endereco - 1)
               ),
               utc: toDate(data),
               timestamp: new Date().getTime(),
@@ -74,7 +74,7 @@ module.exports = {
           data.slice(
             POSICAO.POSICAO_MENSAGEM_INTERLIGACAO_SINCRONIZACAO_SEC_COUNTER_RECV,
             POSICAO.POSICAO_MENSAGEM_INTERLIGACAO_SINCRONIZACAO_SEC_COUNTER_RECV +
-              2
+            2
           )
         ).readUInt16LE();
 
@@ -90,23 +90,23 @@ module.exports = {
       case COMANDO.COMANDO_ENVIA_DATA_HORA_INTERLIGACAO_CENTRAL:
         var utc = new Date(
           data[
-            POSICAO.POSICAO_MENSAGEM_INTERLIGACAO_SINCRONIZACAO_DATA_HORA_RTC_ANO
+          POSICAO.POSICAO_MENSAGEM_INTERLIGACAO_SINCRONIZACAO_DATA_HORA_RTC_ANO
           ],
           data[
-            POSICAO
-              .POSICAO_MENSAGEM_INTERLIGACAO_SINCRONIZACAO_DATA_HORA_RTC_MES
+          POSICAO
+            .POSICAO_MENSAGEM_INTERLIGACAO_SINCRONIZACAO_DATA_HORA_RTC_MES
           ] - 1,
           data[
-            POSICAO.POSICAO_MENSAGEM_INTERLIGACAO_SINCRONIZACAO_DATA_HORA_RTC_DIA
+          POSICAO.POSICAO_MENSAGEM_INTERLIGACAO_SINCRONIZACAO_DATA_HORA_RTC_DIA
           ],
           data[
-            POSICAO.POSICAO_MENSAGEM_INTERLIGACAO_SINCRONIZACAO_DATA_HORA_RTC_HORA
+          POSICAO.POSICAO_MENSAGEM_INTERLIGACAO_SINCRONIZACAO_DATA_HORA_RTC_HORA
           ],
           data[
-            POSICAO.POSICAO_MENSAGEM_INTERLIGACAO_SINCRONIZACAO_DATA_HORA_RTC_MINUTO
+          POSICAO.POSICAO_MENSAGEM_INTERLIGACAO_SINCRONIZACAO_DATA_HORA_RTC_MINUTO
           ],
           data[
-            POSICAO.POSICAO_MENSAGEM_INTERLIGACAO_SINCRONIZACAO_DATA_HORA_RTC_SEGUNDO
+          POSICAO.POSICAO_MENSAGEM_INTERLIGACAO_SINCRONIZACAO_DATA_HORA_RTC_SEGUNDO
           ]
         );
 
@@ -154,7 +154,7 @@ module.exports = {
           var i = POSICAO.POSICAO_MENSAGEM_INTERLIGACAO_ENVIA_NOME_CENTRAIS;
           i <
           POSICAO.POSICAO_MENSAGEM_INTERLIGACAO_ENVIA_NOME_CENTRAIS +
-            CONFIG.NR_LOCAL_INSTALACAO;
+          CONFIG.NR_LOCAL_INSTALACAO;
           i++
         ) {
           nome += String.fromCharCode(data[i]);
@@ -162,7 +162,7 @@ module.exports = {
 
         var modelo =
           data[
-            POSICAO.POSICAO_MENSAGEM_INTERLIGACAO_ENVIA_NOME_MODELO_CENTRAIS
+          POSICAO.POSICAO_MENSAGEM_INTERLIGACAO_ENVIA_NOME_MODELO_CENTRAIS
           ];
         var endereco =
           data[POSICAO.POSICAO_MENSAGEM_INTERLIGACAO_ENVIA_ENDERECO_CENTRAIS];
@@ -371,7 +371,7 @@ module.exports = {
         dispositivo.endereco = data[POSICAO.POSICAO_DISPOSITIVO_RAM_ENDERECO];
         dispositivo.numero =
           data[
-            POSICAO.POSICAO_MENSAGEM_DISPOSITIVOS_CENTRAIS_POSICAO_DISPOSITIVO
+          POSICAO.POSICAO_MENSAGEM_DISPOSITIVOS_CENTRAIS_POSICAO_DISPOSITIVO
           ];
 
         var nome = "";
@@ -443,7 +443,7 @@ module.exports = {
         break;
 
       case COMANDO.COMANDO_COMUNICACAO_PROGRAMADOR_SESSAO_INVALIDA:
-        console.log("COMANDO_COMUNICACAO_PROGRAMADOR_SESSAO_INVALIDA");
+        //console.log("COMANDO_COMUNICACAO_PROGRAMADOR_SESSAO_INVALIDA");
         obj = { event: "udp_nak" };
 
         break;
@@ -457,8 +457,8 @@ module.exports = {
         break;
 
       case COMANDO.COMANDO_ACK_COMANDOS_BLOQUEIOS_SAIDAS_INTERLIGACAO_CENTRAL:
-        console.log(
-          "COMANDO_ACK_COMANDOS_BLOQUEIOS_SAIDAS_INTERLIGACAO_CENTRAL",
+        //console.log(
+        "COMANDO_ACK_COMANDOS_BLOQUEIOS_SAIDAS_INTERLIGACAO_CENTRAL",
           data
         );
         obj = { event: "udp_bloquear", data: { numero: data[3] } };
@@ -546,8 +546,8 @@ module.exports = {
       case COMANDO.NAK_COMANDO_INVALIDO:
         switch (data[1]) {
           case COMANDO.COMANDO_COMUNICACAO_PROGRAMADOR_AUTENTICACAO_REMOTA:
-            console.log(data);
-            console.log("COMANDO_COMUNICACAO_PROGRAMADOR_AUTENTICACAO_REMOTA");
+            //console.log(data);
+            //console.log("COMANDO_COMUNICACAO_PROGRAMADOR_AUTENTICACAO_REMOTA");
             obj = {
               event: "udp_autenticacao",
               data: { fail: true },
@@ -556,8 +556,8 @@ module.exports = {
             break;
 
           default:
-            console.log(data);
-            console.log("NAK_COMANDO_INVALIDO default");
+            //console.log(data);
+            //console.log("NAK_COMANDO_INVALIDO default");
             obj = { event: "udp_nak" };
 
             break;
@@ -566,8 +566,8 @@ module.exports = {
         break;
 
       default:
-        console.log(data);
-        console.log("NAK_COMANDO_INVALIDO master default");
+        //console.log(data);
+        //console.log("NAK_COMANDO_INVALIDO master default");
         obj = { event: "udp_invalid_command" };
 
         break;

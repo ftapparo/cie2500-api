@@ -33,7 +33,7 @@ class TCPCommunicationManager {
       this.client.connect(this.port, this.ip, () => {
         this.isConnected = true;
         this.reconnectAttempts = 0;
-        console.log(`Conectado ao servidor ${this.ip}:${this.port}`);
+        //console.log(`Conectado ao servidor ${this.ip}:${this.port}`);
         resolve();
       });
 
@@ -85,7 +85,7 @@ class TCPCommunicationManager {
     if (this.client) {
       this.client.destroy();
       this.isConnected = false;
-      console.log("Conexão encerrada.");
+      //console.log("Conexão encerrada.");
     }
   }
 
@@ -103,7 +103,7 @@ class TCPCommunicationManager {
 
     try {
       await this.connect();
-      console.log("Reconexão bem-sucedida.");
+      //console.log("Reconexão bem-sucedida.");
     } catch (error) {
       console.error("Falha na reconexão:", error.message);
       setTimeout(() => this._handleReconnect(), 3000);

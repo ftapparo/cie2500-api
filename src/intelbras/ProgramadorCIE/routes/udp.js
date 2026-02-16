@@ -33,14 +33,14 @@ var udp = {
             for (var ip of adapters) {
               this_.socketMulticast.addMembership(CONFIG.IPV4_GROUP, ip);
             }
-            console.log("OPEN socketRemoteOpperation");
+            //console.log("OPEN socketRemoteOpperation");
           });
           this_.socketMulticast.on("close", function () {
-            console.log("CLOSE socketMulticast");
+            //console.log("CLOSE socketMulticast");
             UdpUtils.closeSocket(this_.socketMulticast);
           });
           this_.socketMulticast.on("error", function () {
-            console.log("ERROR socketMulticast");
+            //console.log("ERROR socketMulticast");
           });
           this_.socketMulticast.bind(CONFIG.PORT_REMOTE_OPPERATION_MULTICAST);
         }
@@ -54,14 +54,14 @@ var udp = {
             this_.receiverRemoteOpperationFn
           );
           this_.socketRemoteOpperation.on("listening", function () {
-            console.log("OPEN socketRemoteOpperation");
+            //console.log("OPEN socketRemoteOpperation");
           });
           this_.socketRemoteOpperation.on("close", function () {
-            console.log("CLOSE socketRemoteOpperation");
+            //console.log("CLOSE socketRemoteOpperation");
             UdpUtils.closeSocket(this_.socketRemoteOpperation);
           });
           this_.socketRemoteOpperation.on("error", function () {
-            console.log("ERROR socketRemoteOpperation");
+            //console.log("ERROR socketRemoteOpperation");
           });
         }
 
@@ -74,21 +74,21 @@ var udp = {
             this_.receiverRemoteConnectionFn
           );
           this_.socketRemoteConnection.on("listening", function () {
-            console.log("OPEN socketRemoteConnection");
+            //console.log("OPEN socketRemoteConnection");
           });
           this_.socketRemoteConnection.on("close", function () {
-            console.log("CLOSE socketRemoteConnectio");
+            //console.log("CLOSE socketRemoteConnectio");
             UdpUtils.closeSocket(this_.socketRemoteConnection);
           });
           this_.socketRemoteConnection.on("error", function () {
-            console.log("ERROR socketRemoteConnection");
+            //console.log("ERROR socketRemoteConnection");
           });
         }
 
         resolve();
       });
     } catch (e) {
-      console.log(e);
+      //console.log(e);
     }
   },
   assign: async function (getNameMac) {
@@ -158,7 +158,7 @@ var udp = {
           if (central.ip === remote.address) {
             for (var attr in newAttrs) {
               var attrValue = newAttrs[attr];
-              console.log(attr, attrValue);
+              //console.log(attr, attrValue);
               central[attr] = attrValue;
             }
           }
@@ -184,7 +184,7 @@ var udp = {
         }, 500);
 
         timeout = setTimeout(function () {
-          console.log("timeout udp");
+          //console.log("timeout udp");
           this_.wsSendFunction({
             event: "udp_descobrir",
             data: centrais.data || [],
@@ -207,7 +207,7 @@ var udp = {
         });
       }
     } catch (e) {
-      console.log("assign ERROR", e);
+      //console.log("assign ERROR", e);
       this_.wsSendFunction({
         event: "udp_descobrir",
         data: [],
@@ -302,7 +302,7 @@ var udp = {
     message = UdpUtils.cypher.decrypt(message);
 
     if (message.error) {
-      console.log("ERROR", message.error);
+      //console.log("ERROR", message.error);
     }
 
     if (message.error && message.error !== CONFIG.ERRORS.FAIL_COUNTER) {
@@ -412,11 +412,11 @@ var udp = {
       if (this_.receiverRemoteConnection) {
         this_.receiverRemoteConnection = undefined;
       }
-      console.log("setConnectionStatus 2");
+      //console.log("setConnectionStatus 2");
 
       this_.setConnectionStatus(false);
     } catch (e) {
-      console.log(e);
+      //console.log(e);
     }
   },
   remoteOpperationStopFn: undefined,

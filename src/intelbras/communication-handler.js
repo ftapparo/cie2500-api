@@ -22,7 +22,7 @@ function executeCommand(commandKey, data, ...args) {
   if (commandHandler[commandKey]) {
     try {
       const result = commandHandler[commandKey](data, ...args);
-      console.log(`Comando ${commandKey} executado com sucesso:`, result);
+      //console.log(`Comando ${commandKey} executado com sucesso:`, result);
       return result;
     } catch (error) {
       console.error(`Erro ao executar o comando ${commandKey}:`, error);

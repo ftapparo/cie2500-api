@@ -16,7 +16,7 @@ var ConnectionController = {
   changeConnectionMode: function (mode) {
     const changedConnectionMode = mode != this.connectionMode;
     this.connectionMode = mode;
-    console.log("Changed Connection Mode", mode);
+    //console.log("Changed Connection Mode", mode);
     this.test(changedConnectionMode);
   },
   stopWifiConnection: function () {
@@ -48,7 +48,7 @@ var ConnectionController = {
     }
   },
   test: function () {
-    console.log("test", this.connectionMode);
+    //console.log("test", this.connectionMode);
     clearInterval(ConnectionController.usbTestConnectionTimeout);
     clearInterval(ConnectionController.wifiTimeout);
     ConnectionController.wifiTimeout = undefined;
@@ -70,80 +70,80 @@ var ConnectionController = {
       //usb.stopUsbCommunication();
       ConnectionController.testAndGetVersion();
       ConnectionController.wifiTimeout = setInterval(function () {
-        console.log(
-          "wifi.transmitting(ConnectionController.connectedModel) ",
+        //console.log(
+        "wifi.transmitting(ConnectionController.connectedModel) ",
           wifi.transmitting(ConnectionController.connectedModel)
         );
-        if (!wifi.transmitting(ConnectionController.connectedModel)) {
-          wifi.verifyWifiConnected().then(
-            (model) => {
-              ConnectionController.setConnectionStatus(true, "wifi");
-              ConnectionController.verifyChangeWifiConnection(model);
-              writeToWebsocket({
-                event: "connected",
-                data: { model },
-              });
-            },
-            (e) => {
-              ConnectionController.setConnectionStatus(false, "wifi");
-              ConnectionController.verifyChangeWifiConnection(undefined);
-              console.log(e);
-              writeToWebsocket({ event: "disconnected", data: e });
-            }
-          );
-        }
-      }, 4000);
-    }
-  },
+      if (!wifi.transmitting(ConnectionController.connectedModel)) {
+        wifi.verifyWifiConnected().then(
+          (model) => {
+            ConnectionController.setConnectionStatus(true, "wifi");
+            ConnectionController.verifyChangeWifiConnection(model);
+            writeToWebsocket({
+              event: "connected",
+              data: { model },
+            });
+          },
+          (e) => {
+            ConnectionController.setConnectionStatus(false, "wifi");
+            ConnectionController.verifyChangeWifiConnection(undefined);
+            //console.log(e);
+            writeToWebsocket({ event: "disconnected", data: e });
+          }
+        );
+      }
+    }, 4000);
+  }
+},
   verifyChangeWifiConnection: function (newModel) {
     if (
       /*ConnectionController.connectedModel && */ ConnectionController.connectedModel !==
       newModel
     ) {
-      ConnectionController.test();
-    }
-    ConnectionController.connectedModel = newModel;
+  ConnectionController.test();
+}
+ConnectionController.connectedModel = newModel;
   },
-  testAndGetVersion: function () {
-    wifi
-      .testAndGetVersion()
-      .then(({ model, version }) => {
-        ConnectionController.setConnectionStatus(true);
-        writeToWebsocket({ event: "connected", data: { model, version } });
-      })
-      .catch((error) => {
-        ConnectionController.setConnectionStatus(false);
-        writeToWebsocket({ event: "disconnected" });
-        console.error("Error testing and getting version:", error);
-      });
-  },
-  setConnectionStatus: function (status, data) {
-    ConnectionController.connectionStatus = status;
+testAndGetVersion: function () {
+  wifi
+    .testAndGetVersion()
+    .then(({ model, version }) => {
+      ConnectionController.setConnectionStatus(true);
+      writeToWebsocket({ event: "connected", data: { model, version } });
+    })
+    .catch((error) => {
+      ConnectionController.setConnectionStatus(false);
+      writeToWebsocket({ event: "disconnected" });
+      console.error("Error testing and getting version:", error);
+    });
+},
+setConnectionStatus: function (status, data) {
+  ConnectionController.connectionStatus = status;
 
-    if (data) {
-      if (data.model == "GATEWAY") {
-        Controller.setSendFunction(ConnectionController.sendToCentral);
-      }
-    } else {
-      Controller.setSendFunction(ConnectionController.sendToCentralProtocolUDP);
+  if (data) {
+    if (data.model == "GATEWAY") {
+      Controller.setSendFunction(ConnectionController.sendToCentral);
     }
-  },
-  hasConnection: function () {
-    return ConnectionController.connectionStatus;
-  },
-  stopComunnication: function () {
-    console.log("setConnectionStatus 1");
-    ConnectionController.setConnectionStatus(false);
-    // TODO: handle case where gw521 connection mode is NETWORK
-    if (ConnectionController.connectionMode !== config.connectionsMode.USB) {
-      udp.stopCommunication();
-    } else {
-      usb.startTestUSB();
-    }
-  },
-  setTcpHandler: function (tcp_handler) {
-    wifi.tcp = tcp_handler;
-  },
+  } else {
+    Controller.setSendFunction(ConnectionController.sendToCentralProtocolUDP);
+  }
+},
+hasConnection: function () {
+  return ConnectionController.connectionStatus;
+},
+stopComunnication: function () {
+  //console.log("setConnectionStatus 1");
+  ConnectionController.setConnectionStatus(false);
+  // TODO: handle case where gw521 connection mode is NETWORK
+  if (ConnectionController.connectionMode !== config.connectionsMode.USB) {
+    udp.stopCommunication();
+  } else {
+    usb.startTestUSB();
+  }
+},
+setTcpHandler: function (tcp_handler) {
+  wifi.tcp = tcp_handler;
+},
 };
 
 module.exports = function (cie_usb, cie_udp, webSocket, tcp_handler) {

@@ -6,8 +6,8 @@ var __awaiter =
       return value instanceof P
         ? value
         : new P(function (resolve) {
-            resolve(value);
-          });
+          resolve(value);
+        });
     }
     return new (P || (P = Promise))(function (resolve, reject) {
       function fulfilled(value) {
@@ -36,14 +36,14 @@ var __generator =
   (this && this.__generator) ||
   function (thisArg, body) {
     var _ = {
-        label: 0,
-        sent: function () {
-          if (t[0] & 1) throw t[1];
-          return t[1];
-        },
-        trys: [],
-        ops: [],
+      label: 0,
+      sent: function () {
+        if (t[0] & 1) throw t[1];
+        return t[1];
       },
+      trys: [],
+      ops: [],
+    },
       f,
       y,
       t,
@@ -51,9 +51,9 @@ var __generator =
     return (
       (g = { next: verb(0), throw: verb(1), return: verb(2) }),
       typeof Symbol === "function" &&
-        (g[Symbol.iterator] = function () {
-          return this;
-        }),
+      (g[Symbol.iterator] = function () {
+        return this;
+      }),
       g
     );
     function verb(n) {
@@ -67,13 +67,13 @@ var __generator =
         try {
           if (
             ((f = 1),
-            y &&
+              y &&
               (t =
                 op[0] & 2
                   ? y["return"]
                   : op[0]
-                  ? y["throw"] || ((t = y["return"]) && t.call(y), 0)
-                  : y.next) &&
+                    ? y["throw"] || ((t = y["return"]) && t.call(y), 0)
+                    : y.next) &&
               !(t = t.call(y, op[1])).done)
           )
             return t;
@@ -157,7 +157,7 @@ var SocketService = /** @class */ (function () {
     this.clearTimeout();
     this.timeout = setTimeout(function () {
       var _a;
-      console.log("timeout");
+      //console.log("timeout");
       (_a = _this.socket) === null || _a === void 0 ? void 0 : _a.destroy();
       acc({
         frame: socket_interface_1.emptyFrame,
@@ -172,15 +172,15 @@ var SocketService = /** @class */ (function () {
       (_a = _this.socket) === null || _a === void 0
         ? void 0
         : _a.write(frame, undefined, function (err) {
-            if (err && acc) {
-              console.log("========================== ERRO WRITE");
-              //this.clearTimeout();
-              acc({
-                frame: socket_interface_1.emptyFrame,
-                response: socket_interface_1.CommunicationResponseType.FAIL,
-              });
-            }
-          });
+          if (err && acc) {
+            //console.log("========================== ERRO WRITE");
+            //this.clearTimeout();
+            acc({
+              frame: socket_interface_1.emptyFrame,
+              response: socket_interface_1.CommunicationResponseType.FAIL,
+            });
+          }
+        });
     }, 100);
   };
   SocketService.prototype.send = function (frame, ping) {
@@ -206,7 +206,7 @@ var SocketService = /** @class */ (function () {
                   port: 31320,
                 },
                 function () {
-                  console.log(">> ENVIA", handshake.printProperties());
+                  //console.log(">> ENVIA", handshake.printProperties());
                   _this.write(handshakeFrame, acc);
                   _this.createTimeout(acc);
                 }
@@ -224,7 +224,7 @@ var SocketService = /** @class */ (function () {
                 var _a, _b;
                 _this.attemps = 0;
                 var dataBuffer = buffer_1.Buffer.from(data);
-                console.log("<< RECEIVE", Buffer.from(data));
+                //console.log("<< RECEIVE", Buffer.from(data));
                 var frameReceived = new frame_struct_1.FrameStruct().unParse(
                   dataBuffer
                 );
@@ -245,7 +245,7 @@ var SocketService = /** @class */ (function () {
                   } else {
                     _this.createTimeout(acc);
                     var bufferToSend = frameSend.parse(frame);
-                    console.log(">> ENVIA", frameSend.printProperties());
+                    //console.log(">> ENVIA", frameSend.printProperties());
                     _this.write(bufferToSend, acc);
                   }
                 } else if (
@@ -263,7 +263,7 @@ var SocketService = /** @class */ (function () {
                 } else {
                   // this.clearTimeout();
                   // this.socket?.destroy();
-                  // console.log('caso 3')
+                  // //console.log('caso 3')
                   // // this.socket?.destroy();
                   // acc({
                   //   frame: emptyFrame,

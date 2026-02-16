@@ -21,7 +21,7 @@ var wifi = {
   verifyWifiConnected: async function () {
     return new Promise(async (acc, rej) => {
       getConnectionWifiNameFunction(async (currentConnection) => {
-        console.log("getConnectedWifi", currentConnection);
+        //console.log("getConnectedWifi", currentConnection);
         try {
           if (!currentConnection) {
             rej();

@@ -227,9 +227,9 @@ module.exports = {
         var array_name = frame.slice(
           config.device.name_start - 1 + i * config.device.offset,
           config.device.name_start -
-            1 +
-            i * config.device.offset +
-            config.device.name_length
+          1 +
+          i * config.device.offset +
+          config.device.name_length
         );
 
         device.nome = "";
@@ -311,9 +311,9 @@ module.exports = {
         var array_name = frame.slice(
           config.zone.name_start - 1 + i * config.zone.offset,
           config.zone.name_start -
-            1 +
-            i * config.zone.offset +
-            config.zone.name_length
+          1 +
+          i * config.zone.offset +
+          config.zone.name_length
         );
 
         zone.nome = "";
@@ -422,9 +422,9 @@ module.exports = {
         var array_name = frame.slice(
           config.rule.name_start - 1 + i * config.rule.offset,
           config.rule.name_start -
-            1 +
-            i * config.rule.offset +
-            config.rule.name_length
+          1 +
+          i * config.rule.offset +
+          config.rule.name_length
         );
 
         rule.nome = "";
@@ -449,7 +449,7 @@ module.exports = {
             : "dupla";
         rule.ativacao_saida =
           frame[config.rule.activation_output + i * config.rule.offset - 1] ==
-          "0"
+            "0"
             ? "imediata"
             : "temporizada";
         rule.brigada =
@@ -562,7 +562,7 @@ module.exports = {
       //POSICAO_ITEM_MODO -- 1 = zona; 0 = dispositivo
       if (
         frame[
-          config.rule_items.item_class - 1 + i * config.rule_items.offset
+        config.rule_items.item_class - 1 + i * config.rule_items.offset
         ] == 1
       ) {
         var rule_item = {};
@@ -577,23 +577,23 @@ module.exports = {
         ruleItemConfig.items.push(rule_item);
       } else if (
         frame[config.rule_items.item_id - 1 + i * config.rule_items.offset] !=
-          0 &&
+        0 &&
         frame[config.rule_items.item_id - 1 + i * config.rule_items.offset] !=
-          undefined
+        undefined
       ) {
         var rule_item = {};
 
         //se o laco for diferente de zero ou for um dispositivo local = é um dispositivo
         if (
           frame[
-            config.rule_items.item_loop - 1 + i * config.rule_items.offset
+          config.rule_items.item_loop - 1 + i * config.rule_items.offset
           ] != 0 ||
           config.dispositivos_locais.indexOf(id + "") != -1
         ) {
           rule_item.tipo = "dispositivo";
           rule_item.laco =
             frame[
-              config.rule_items.item_loop + i * config.rule_items.offset - 1
+            config.rule_items.item_loop + i * config.rule_items.offset - 1
             ];
 
           //senão é um evento ou um evento de interligacao
@@ -820,8 +820,8 @@ module.exports = {
       data.gateway.webhook.nivelAutenticacao === "criptografia"
         ? 0
         : data.gateway.webhook.nivelAutenticacao === "opcional"
-        ? 1
-        : 2;
+          ? 1
+          : 2;
     webhookHost[config.gateway.webhook_host.HttpsAuthType] = HttpsAuthType;
     if (isIpAddress(trimNull(data.gateway.webhook.host))) {
       split = trimNull(data.gateway.webhook.host).split(".");
@@ -1003,7 +1003,7 @@ module.exports = {
             frame[config.gateway.rede.modo_ip - 1] === 1;
           gatewayConfig.gateway.integracao =
             config.tipo_integracao_types[
-              frame[config.gateway.rede.tipo_integracao - 1]
+            frame[config.gateway.rede.tipo_integracao - 1]
             ];
           gatewayConfig.rede.ipv6 =
             frame[config.gateway.rede.is_ipv6 - 1] === 1;
@@ -1151,8 +1151,8 @@ module.exports = {
             frame[config.gateway.webhook_host.HttpsAuthType - 1] === 0
               ? "criptografia"
               : frame[config.gateway.webhook_host.HttpsAuthType - 1] === 1
-              ? "opcional"
-              : "obrigatoria";
+                ? "opcional"
+                : "obrigatoria";
           gatewayConfig.gateway.webhook.porta = read16(
             frame,
             config.gateway.webhook_host.Porta
@@ -1629,7 +1629,7 @@ module.exports = {
         mac += ("00" + frame[index].toString(16)).slice(-2) + ":";
       }
       mac = mac.substring(0, mac.length - 1).toUpperCase();
-    } catch (e) {}
+    } catch (e) { }
 
     systemConfig.endereco_mac = mac;
 
@@ -1821,8 +1821,8 @@ module.exports = {
       var device_array_name = frame.slice(
         config.log.device_name + i * config.log.offset,
         config.log.device_name +
-          i * config.log.offset +
-          config.log.device_name_length
+        i * config.log.offset +
+        config.log.device_name_length
       );
       log.nome_dispositivo = String.fromCharCode.apply(null, device_array_name);
 
@@ -1834,8 +1834,8 @@ module.exports = {
       var zone_array_name = frame.slice(
         config.log.zone_name + i * config.log.offset,
         config.log.zone_name +
-          i * config.log.offset +
-          config.log.zone_name_length
+        i * config.log.offset +
+        config.log.zone_name_length
       );
       log.nome_zona = String.fromCharCode.apply(null, zone_array_name);
 
@@ -2051,7 +2051,7 @@ function minSecToInt(string) {
     minutes += +stringSplit[0] * 60;
     minutes += +stringSplit[1];
   } catch (e) {
-    console.log(e);
+    //console.log(e);
   }
   return minutes;
 }
@@ -2062,7 +2062,7 @@ function intToMinSec(secs) {
     t.setSeconds(secs);
     return pad(t.getMinutes()) + ":" + pad(t.getSeconds());
   } catch (e) {
-    console.log(e);
+    //console.log(e);
   }
   return "00:00";
 }
@@ -2073,7 +2073,7 @@ function millisecondsToMinSec(mili) {
     t.setMilliseconds(mili);
     return pad(t.getMinutes()) + ":" + pad(t.getSeconds());
   } catch (e) {
-    console.log(e);
+    //console.log(e);
   }
   return "00:00";
 }

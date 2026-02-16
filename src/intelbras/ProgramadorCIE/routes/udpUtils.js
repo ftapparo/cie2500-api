@@ -289,7 +289,7 @@ var UdpUtils = {
     try {
       if (socket) socket.close();
     } catch (e) {
-      console.log(e);
+      //console.log(e);
     }
   },
   getLocalIp: function () {
@@ -304,7 +304,7 @@ var UdpUtils = {
         }
       }
     }
-    console.log(addresses);
+    //console.log(addresses);
     return addresses;
   },
   createSocket: async function (port) {
@@ -323,7 +323,7 @@ var UdpUtils = {
         }
       });
     } catch (e) {
-      console.log(e);
+      //console.log(e);
       return null;
     }
   },

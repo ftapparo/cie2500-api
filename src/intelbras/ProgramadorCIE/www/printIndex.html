@@ -1,9 +1,9 @@
 <html lang="pt">
+
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="css/angular-material.css">
     <style>
-
         body {
             margin: 0 0 115px 0;
             overflow: hidden;
@@ -20,6 +20,7 @@
             border-spacing: 0;
             overflow: hidden;
         }
+
         table {
             white-space: normal;
             line-height: normal;
@@ -28,6 +29,7 @@
             font-style: normal;
             text-align: start;
         }
+
         table {
             margin: 20px 0;
             display: table;
@@ -35,26 +37,31 @@
             border-spacing: 2px;
             border-color: grey;
         }
+
         thead {
             display: table-header-group;
             vertical-align: middle;
             border-color: inherit;
         }
+
         tr {
             display: table-row;
             vertical-align: inherit;
             border-color: inherit;
         }
 
-        table.md-table td.md-cell, table.md-table th.md-column {
+        table.md-table td.md-cell,
+        table.md-table th.md-column {
             vertical-align: middle;
             text-align: left;
         }
+
         table.md-table td.md-cell {
-            color: rgba(0,0,0,.87);
-            border-top: 1px rgba(0,0,0,.12) solid;
+            color: rgba(0, 0, 0, .87);
+            border-top: 1px rgba(0, 0, 0, .12) solid;
             padding: 3px 3px;
         }
+
         tbody {
             display: table-row-group;
             vertical-align: middle;
@@ -157,7 +164,7 @@
             font-weight: bold;
             width: 200px;
             color: #000000;
-            text-align:right;
+            text-align: right;
             padding-top: 7px;
         }
 
@@ -197,25 +204,36 @@
             background: -webkit-linear-gradient(top, white 0, #e1e1e1 100%);
             border-bottom: 1px solid #cdcdcd;
             -webkit-app-region: drag;
-            -webkit-user-select: none; }
+            -webkit-user-select: none;
+        }
+
         header .version {
             margin-left: 5px;
             color: #596871;
-            font-size: 11px; }
+            font-size: 11px;
+        }
+
         header .window-buttons {
             -webkit-app-region: no-drag;
-            margin: 0 5px 0 0; }
+            margin: 0 5px 0 0;
+        }
+
         header .window-buttons md-icon {
 
             outline: none;
             margin-left: 5px;
             font-size: 12px !important;
-            color: #596871; }
+            color: #596871;
+        }
+
         header .window-buttons md-icon:hover {
             color: #2c3d47;
-            cursor: pointer; }
+            cursor: pointer;
+        }
+
         header .window-buttons md-icon:active {
-            color: #a3adb9; }
+            color: #a3adb9;
+        }
 
         #printButton {
             -webkit-app-region: no-drag;
@@ -226,14 +244,14 @@
             justify-content: center;
         }
 
-        #printButton button{
+        #printButton button {
             width: 150px;
             height: 40px;
             border: none;
             color: #ffffff;
             font-weight: 500;
             font-size: 14px;
-            background: rgb(55,175,44);
+            background: rgb(55, 175, 44);
         }
 
         #content {
@@ -245,7 +263,9 @@
 
         .result-draw {
             overflow-x: auto;
-            margin-bottom: 30px; }
+            margin-bottom: 30px;
+        }
+
         .result-draw .step {
             height: 2px;
             background-color: darkred;
@@ -253,16 +273,21 @@
             border-bottom: 1px black solid;
             margin: 50px 0;
         }
+
         .result-draw .step .name-session {
             color: #596871;
             font-weight: bold;
-            font-size: 12px; }
+            font-size: 12px;
+        }
+
         .result-draw .info {
             margin: 5px;
             font-size: 14px;
             padding: 5px;
             border-radius: 5px;
-            border: 2px #e1e1e1 solid; }
+            border: 2px #e1e1e1 solid;
+        }
+
         .result-draw .step .distance {
             margin-bottom: 50px;
         }
@@ -271,15 +296,18 @@
             #printButton {
                 display: none !important;
             }
+
             body {
                 overflow: visible;
                 border: none;
                 margin: 0;
             }
+
             #content {
                 height: auto !important;
                 overflow: visible;
             }
+
             header {
                 display: none !important;
             }
@@ -295,18 +323,18 @@
         title: 'Programador CIE - Relatório',
         salvarPdf: 'SALVAR PDF'
     };
-    if(isNode) {
+    if (isNode) {
         try {
             isNodeWebkit = (typeof require('nw.gui') !== "undefined");
-        } catch(e) {
+        } catch (e) {
             isNodeWebkit = false;
         }
     }
-    if(isNodeWebkit) {
+    if (isNodeWebkit) {
         gui = require('nw.gui');
         win = gui.Window.get();
         win.window.document.addEventListener("sendTemplate", function (event) {
-            console.log('sendTemplate', event);
+            //console.log('sendTemplate', event);
             window.document.getElementById("content").innerHTML = event.detail.html;
 
             translate = event.detail.translate;
@@ -343,11 +371,11 @@
         var pathHtml = path.join(process.cwd() + '/www/', 'printTemp' + new Date().getTime() + '.html');
 
         fs.writeFile(pathHtml, new XMLSerializer().serializeToString(document), function (err) {
-            if(err) {
+            if (err) {
                 return;
             }
             var event = new CustomEvent("print", {
-                detail : {
+                detail: {
                     pathHtml: pathHtml,
                     pathPdf: pathPdf
                 }
@@ -359,19 +387,19 @@
 </script>
 
 <body>
-<header class="layout-align-space-between-center layout-row">
-    <div id="titlePrint" class="version">Programador CIE - Relatórios</div>
-    <div class="window-buttons">
-        <md-icon onclick="windowMinimize()">➖</md-icon>
-        <md-icon onclick="windowMaximize()">⬜</md-icon>
-        <md-icon onclick="windowClose()">❌</md-icon>
+    <header class="layout-align-space-between-center layout-row">
+        <div id="titlePrint" class="version">Programador CIE - Relatórios</div>
+        <div class="window-buttons">
+            <md-icon onclick="windowMinimize()">➖</md-icon>
+            <md-icon onclick="windowMaximize()">⬜</md-icon>
+            <md-icon onclick="windowClose()">❌</md-icon>
+        </div>
+    </header>
+    <input nwsaveas style="display: none" id="saveAsPdf" type="file" accept=".pdf" onchange="selectPath(this.value)">
+    <div id="printButton">
+        <button id='botaoSalvarPdf' onclick="printReport()">SALVAR PDF</button>
     </div>
-</header>
-<input nwsaveas style="display: none" id="saveAsPdf" type="file" accept=".pdf" onchange="selectPath(this.value)">
-<div id="printButton">
-    <button id='botaoSalvarPdf' onclick="printReport()">SALVAR PDF</button>
-</div>
-<div id="content"></div>
+    <div id="content"></div>
 </body>
 
 </html>

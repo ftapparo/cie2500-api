@@ -6,8 +6,8 @@ var __awaiter =
       return value instanceof P
         ? value
         : new P(function (resolve) {
-            resolve(value);
-          });
+          resolve(value);
+        });
     }
     return new (P || (P = Promise))(function (resolve, reject) {
       function fulfilled(value) {
@@ -36,14 +36,14 @@ var __generator =
   (this && this.__generator) ||
   function (thisArg, body) {
     var _ = {
-        label: 0,
-        sent: function () {
-          if (t[0] & 1) throw t[1];
-          return t[1];
-        },
-        trys: [],
-        ops: [],
+      label: 0,
+      sent: function () {
+        if (t[0] & 1) throw t[1];
+        return t[1];
       },
+      trys: [],
+      ops: [],
+    },
       f,
       y,
       t,
@@ -51,9 +51,9 @@ var __generator =
     return (
       (g = { next: verb(0), throw: verb(1), return: verb(2) }),
       typeof Symbol === "function" &&
-        (g[Symbol.iterator] = function () {
-          return this;
-        }),
+      (g[Symbol.iterator] = function () {
+        return this;
+      }),
       g
     );
     function verb(n) {
@@ -67,13 +67,13 @@ var __generator =
         try {
           if (
             ((f = 1),
-            y &&
+              y &&
               (t =
                 op[0] & 2
                   ? y["return"]
                   : op[0]
-                  ? y["throw"] || ((t = y["return"]) && t.call(y), 0)
-                  : y.next) &&
+                    ? y["throw"] || ((t = y["return"]) && t.call(y), 0)
+                    : y.next) &&
               !(t = t.call(y, op[1])).done)
           )
             return t;
@@ -157,10 +157,10 @@ var CommunicationService = /** @class */ (function () {
             _a.label = 1;
           case 1:
             if (attemps > 1) {
-              console.log(">> FALHOU, TENTA NOVAMENTE, TENTATIVA ", attemps);
+              //console.log(">> FALHOU, TENTA NOVAMENTE, TENTATIVA ", attemps);
             }
             if (!this.transmitting) return [3 /*break*/, 3];
-            console.log(">> WAIT, TRANSMITTING", attemps);
+            //console.log(">> WAIT, TRANSMITTING", attemps);
             return [
               4 /*yield*/,
               new Promise(function (r) {

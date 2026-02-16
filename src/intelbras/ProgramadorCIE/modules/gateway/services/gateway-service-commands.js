@@ -73,19 +73,19 @@ function getGatewayInfo(data, writeToCIE, parseConfig) {
       resolve();
     } else {
       parseConfig.unparseGatewayConfig([data], function (gateway_frame) {
-        console.log(
-          "--UNPARSED GATEWAY FRAME-- : " + JSON.stringify(gateway_frame)
+        //console.log(
+        "--UNPARSED GATEWAY FRAME-- : " + JSON.stringify(gateway_frame)
         );
-        let obj = {
-          event: "get_info_gateway",
-          data: {
-            success: true,
-            config: gateway_frame,
-          },
-        };
-        resolve(obj);
-      });
-    }
+      let obj = {
+        event: "get_info_gateway",
+        data: {
+          success: true,
+          config: gateway_frame,
+        },
+      };
+      resolve(obj);
+    });
+}
   });
 }
 
@@ -113,16 +113,16 @@ function setGatewayReset(data) {
 function getGatewayErrors(data, parseConfig) {
   return new Promise((resolve, reject) => {
     parseConfig.unparseGatewayConfig([data], function (gateway_frame) {
-      console.log(
-        "--UNPARSED GATEWAY FRAME-- : " + JSON.stringify(gateway_frame)
+      //console.log(
+      "--UNPARSED GATEWAY FRAME-- : " + JSON.stringify(gateway_frame)
       );
-      let obj = {
-        event: "get_gateway_errors",
-        data: { success: true, config: gateway_frame },
-      };
-      resolve(obj);
-    });
+    let obj = {
+      event: "get_gateway_errors",
+      data: { success: true, config: gateway_frame },
+    };
+    resolve(obj);
   });
+});
 }
 
 //CIE_commands.SET_GATEWAY_ADVANCED_CMDS

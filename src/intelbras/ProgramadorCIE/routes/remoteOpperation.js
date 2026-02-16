@@ -24,15 +24,15 @@ var RemoteOpperation = {
       }
       _this.control = {};
       _this.token = undefined;
-      console.log("LIMPA TOKEN");
+      //console.log("LIMPA TOKEN");
     } catch (e) {
-      console.log(e);
+      //console.log(e);
     }
   },
   startCommunication: function (params) {
     var this_ = this;
     this_.token = params.token;
-    console.log("SETA TOKEN", params.token);
+    //console.log("SETA TOKEN", params.token);
 
     udp.remoteOpperationStopFn = this_.stopCommunication;
 
@@ -72,9 +72,9 @@ var RemoteOpperation = {
         this_.control[message.event].received = true;
         this_.control[message.event].times = 0;
 
-        console.log("RECEIVED", message.event);
+        //console.log("RECEIVED", message.event);
       } catch (e) {
-        console.log("ERROR RECEIVED", message.event);
+        //console.log("ERROR RECEIVED", message.event);
       }
     });
 
@@ -95,11 +95,11 @@ var RemoteOpperation = {
       for (var event in _this.control) {
         var message = _this.control[event];
         if (message.received) {
-          console.log("RECEIVED EVENT", event);
+          //console.log("RECEIVED EVENT", event);
           delete _this.control[event];
         } else if (message.times <= 20) {
           message.times++;
-          console.log("GET EVENT", event, "times=" + message.times);
+          //console.log("GET EVENT", event, "times=" + message.times);
           getFromCentral(event, message.ip, message.data, message.withoutAuth);
         } else {
           udp.wsSendFunction({
@@ -279,7 +279,7 @@ function getFromCentral(event, ip, data, withoutAuth) {
       command = UdpUtils.makeCommandWithAuth(data, RemoteOpperation.token);
     }
 
-    console.log("SEND", event, command);
+    //console.log("SEND", event, command);
 
     udp.send(command, ip).then(
       function (value) {
@@ -296,7 +296,7 @@ function getFromCentral(event, ip, data, withoutAuth) {
         }
       },
       function (reason) {
-        console.log("UDP SEND ERROR", reason);
+        //console.log("UDP SEND ERROR", reason);
         if (reason.code === "ENETUNREACH") {
           udp.wsSendFunction({
             event: "udp_error",
@@ -307,7 +307,7 @@ function getFromCentral(event, ip, data, withoutAuth) {
       }
     );
   } catch (e) {
-    console.log(e);
+    //console.log(e);
     return null;
   }
 }

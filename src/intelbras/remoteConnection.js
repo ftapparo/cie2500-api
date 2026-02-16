@@ -22,7 +22,7 @@ var RemoteConnection = {
       this_.clearTimeoutConnection();
       udp.wsSendFunction({ event: "disconnected" });
     } catch (e) {
-      console.log(e);
+      //console.log(e);
     }
   },
   startConnection: function (params) {
@@ -34,7 +34,7 @@ var RemoteConnection = {
 
     udp.setReceiverRemoteConnectionFn(function (data) {
       if (data.length) {
-        console.log("<< UDP RECEIVED", new Uint8Array(data.slice(5, 6)));
+        //console.log("<< UDP RECEIVED", new Uint8Array(data.slice(5, 6)));
         if (!this_.interceptor(data)) {
           udp.communicationHandler(UdpUtils.extractMessageData(data));
         }
@@ -69,7 +69,7 @@ var RemoteConnection = {
 
       _this.sendToUdp(command);
     } catch (e) {
-      console.log(e);
+      //console.log(e);
     }
   },
   sendToUdp: function (command) {
@@ -91,10 +91,10 @@ var RemoteConnection = {
           };
         }
 
-        console.log(">> UDP SEND", commandCode, "ID=", identify);
+        //console.log(">> UDP SEND", commandCode, "ID=", identify);
       },
       function (reason) {
-        console.log(">> UDP ERROR", reason);
+        //console.log(">> UDP ERROR", reason);
       }
     );
   },
@@ -104,11 +104,11 @@ var RemoteConnection = {
 
     var identify = UdpUtils.extractMessageIndentify(data, "RECEIVED");
 
-    console.log("RECEIVED ID=", identify);
+    //console.log("RECEIVED ID=", identify);
 
     if (this_.control[identify]) {
       if (this_.control[identify].received) {
-        console.log("RECEBIDO NOVAMENTE ID=", identify);
+        //console.log("RECEBIDO NOVAMENTE ID=", identify);
         return true;
       }
       this_.control[identify].received = true;
@@ -137,24 +137,24 @@ var RemoteConnection = {
               delete _this.control[identify];
             }
           } else if (message.attemps <= 20) {
-            console.log("PEDE NOVAMENTE COMANDO", command, "ID", identify);
+            //console.log("PEDE NOVAMENTE COMANDO", command, "ID", identify);
             message.attemps++;
             _this.sendToUdp(message.command);
           } else {
-            console.log("NÃO RECEBIDO", command, "ID=", identify);
+            //console.log("NÃO RECEBIDO", command, "ID=", identify);
             udp.stopCommunication();
           }
         }
       } catch (e) {
-        console.log("ERROR verifyCommunication", e);
+        //console.log("ERROR verifyCommunication", e);
       }
     }, CONFIG.TIMEOUT.RESEND_MESSAGE_REMOTE_CONECTION);
   },
   clearTimeoutConnection: function () {
     var this_ = RemoteConnection;
-    console.log("#@@@ clearTimeoutConnection");
+    //console.log("#@@@ clearTimeoutConnection");
     if (this_.timeoutConnection) {
-      console.log("CLEAR");
+      //console.log("CLEAR");
       clearTimeout(this_.timeoutConnection);
       this_.timeoutConnection = undefined;
     }

@@ -289,7 +289,7 @@ var UdpUtils = {
     try {
       if (socket) socket.close();
     } catch (e) {
-      //console.log(e);
+      ////console.log(e);
     }
   },
   getLocalIp: function () {
@@ -308,7 +308,7 @@ var UdpUtils = {
       ? new RegExp(process.env.CIE_IFACE_REGEX)
       : /^192\.168\.0\./; // ← ajuste para sua LAN
     var filtered = addresses.filter(ip => regex.test(ip));
-    console.log(filtered.length ? filtered : addresses); // mantém o log do original
+    //console.log(filtered.length ? filtered : addresses); // mantém o log do original
     return filtered.length ? filtered : addresses;
   },
   createSocket: async function (port) {
@@ -323,10 +323,10 @@ var UdpUtils = {
 
         socket.once('error', (err) => {
           socket.__closed = true;
-          try { socket.close(); } catch {}
+          try { socket.close(); } catch { }
           reject(err);
         });
-      
+
         socket.once('close', () => { socket.__closed = true; });
 
         if (port) {
@@ -338,7 +338,7 @@ var UdpUtils = {
         }
       });
     } catch (e) {
-      console.log(e);
+      //console.log(e);
       return null;
     }
   },

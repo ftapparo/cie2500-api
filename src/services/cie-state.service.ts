@@ -39,6 +39,7 @@ export class CieStateService extends EventEmitter {
   private backfillInFlight = 0;
   private ensureByType: Partial<Record<CieLogType, Promise<void>>> = {};
   private reconnectInFlight = false;
+  private heartbeatTimer: NodeJS.Timeout | null = null;
 
   private snapshot: CieStateSnapshot = {
     connected: false,
@@ -79,6 +80,21 @@ export class CieStateService extends EventEmitter {
     this.emit('connection.status.changed', { connected });
   }
 
+  private hardKillProcess(reason: string) {
+    try {
+      console.error(`[CIE] Encerrando processo para recuperacao automatica: ${reason}`);
+    } catch {
+      // no-op
+    }
+    setTimeout(() => {
+      try {
+        process.kill(process.pid, 'SIGKILL');
+      } catch {
+        process.exit(1);
+      }
+    }, 100);
+  }
+
   markRestarting(durationMs = 60000) {
     const safeDuration = Math.max(5000, Math.min(300000, Math.floor(durationMs)));
     this.snapshot.restartingUntil = Date.now() + safeDuration;
@@ -86,7 +102,6 @@ export class CieStateService extends EventEmitter {
     this.snapshot.reconnecting = true;
     this.snapshot.reconnectAttempt = 0;
     this.setConnected(false);
-    this.stopPolling();
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
@@ -114,7 +129,7 @@ export class CieStateService extends EventEmitter {
         this.snapshot.reconnecting = false;
         this.snapshot.restartingUntil = null;
         this.emit('cie.status.updated', this.getSnapshot());
-        setTimeout(() => process.exit(1), 100);
+        this.hardKillProcess('watchdog de reinicio expirado');
       }
     }, safeDuration + 2000);
     this.emit('cie.status.updated', this.getSnapshot());
@@ -212,12 +227,30 @@ export class CieStateService extends EventEmitter {
       if (this.backfillInFlight > 0) return;
       void this.refreshNow();
     }, this.options.pollMs);
+    if (!this.heartbeatTimer) {
+      this.heartbeatTimer = setInterval(() => {
+        if (this.isRestarting()) {
+          const deadline = Number(this.snapshot.restartingUntil || 0);
+          if (Number.isFinite(deadline) && Date.now() >= deadline && !this.snapshot.connected) {
+            this.snapshot.lastError = 'Falha ao reconectar apos reinicio da central (heartbeat timeout).';
+            this.snapshot.reconnecting = false;
+            this.snapshot.restartingUntil = null;
+            this.emit('cie.status.updated', this.getSnapshot());
+            this.hardKillProcess('heartbeat de reinicio expirado');
+          }
+        }
+      }, 1000);
+    }
   }
 
   private stopPolling() {
     if (!this.pollTimer) return;
     clearInterval(this.pollTimer);
     this.pollTimer = null;
+    if (this.heartbeatTimer) {
+      clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = null;
+    }
   }
 
   async refreshNow() {
@@ -331,7 +364,7 @@ export class CieStateService extends EventEmitter {
         this.snapshot.reconnecting = false;
         this.snapshot.restartingUntil = null;
         this.emit('cie.status.updated', this.getSnapshot());
-        setTimeout(() => process.exit(1), 100);
+        this.hardKillProcess('loop de reconexao de reinicio expirado');
         return;
       }
 
