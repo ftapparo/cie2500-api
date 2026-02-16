@@ -136,6 +136,11 @@ export class CieCommandService {
     return String(response?.resposta || '') === 'StatusBotaoNaoConfigurado';
   }
 
+  private sameMapping(a: CommandMapping | null, b: CommandMapping | null): boolean {
+    if (!a || !b) return false;
+    return a.button === b.button && a.parameter === b.parameter;
+  }
+
   private async executeCustomMapping(mapping: CommandMapping): Promise<any> {
     const identifier = this.nextIdentifier();
     return this.client.sendButtonCommand(mapping.button, mapping.parameter, identifier);
@@ -154,6 +159,29 @@ export class CieCommandService {
   }
 
   async execute(action: CommandAction) {
+    // Release de bip/sirene precisa evitar disparar o mesmo payload de "silenciar".
+    if (action === 'release-bip') {
+      const releaseBip = this.mapping['release-bip'];
+      const silenceBip = this.mapping['silence-bip'];
+      if (this.sameMapping(releaseBip, silenceBip) && silenceBip) {
+        return this.executeCustomMapping({
+          button: silenceBip.button,
+          parameter: silenceBip.parameter === 0 ? 1 : 0,
+        });
+      }
+    }
+
+    if (action === 'release-siren') {
+      const releaseSiren = this.mapping['release-siren'];
+      const silenceSiren = this.mapping['silence-siren'];
+      if (this.sameMapping(releaseSiren, silenceSiren) && silenceSiren) {
+        return this.executeCustomMapping({
+          button: silenceSiren.button,
+          parameter: silenceSiren.parameter === 0 ? 1 : 0,
+        });
+      }
+    }
+
     const primary = await this.executeMapped(action);
 
     // Algumas centrais nao possuem comando dedicado de release para bip/sirene.
