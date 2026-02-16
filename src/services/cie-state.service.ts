@@ -239,12 +239,11 @@ export class CieStateService extends EventEmitter {
   }
 
   private async backfillAllTypes() {
-    if (!this.snapshot.status) return;
-    const counters = getCounters(this.snapshot.status);
-    await this.backfillByRange('alarme', 0, counters.alarme);
-    await this.backfillByRange('falha', 0, counters.falha);
-    await this.backfillByRange('supervisao', 0, counters.supervisao);
-    await this.backfillByRange('operacao', 0, Math.min(this.options.logBackfillLimit, 50));
+    const initialLimit = Math.min(this.options.logBackfillLimit, 20);
+    await this.backfillLatestByLimit('alarme', initialLimit);
+    await this.backfillLatestByLimit('falha', initialLimit);
+    await this.backfillLatestByLimit('supervisao', initialLimit);
+    await this.backfillLatestByLimit('operacao', initialLimit);
   }
 
   async ensureLogs(type: CieLogType, limit: number): Promise<void> {
@@ -259,27 +258,22 @@ export class CieStateService extends EventEmitter {
 
     const run = (async () => {
       if (type === 'operacao') {
-        const maxOp = Math.min(this.options.logBackfillLimit, 50);
-        const target = Math.min(desired, maxOp);
-        await this.backfillByRange('operacao', 0, target);
+        await this.backfillLatestByLimit('operacao', desired);
         return;
       }
 
-      if (!this.snapshot.status) return;
-      const counters = getCounters(this.snapshot.status);
-
       if (type === 'alarme') {
-        await this.backfillByRange('alarme', 0, counters.alarme);
+        await this.backfillLatestByLimit('alarme', desired);
         return;
       }
 
       if (type === 'falha') {
-        await this.backfillByRange('falha', 0, counters.falha);
+        await this.backfillLatestByLimit('falha', desired);
         return;
       }
 
       if (type === 'supervisao') {
-        await this.backfillByRange('supervisao', 0, counters.supervisao);
+        await this.backfillLatestByLimit('supervisao', desired);
         return;
       }
     })()
@@ -289,6 +283,37 @@ export class CieStateService extends EventEmitter {
 
     this.ensureByType[type] = run;
     await run;
+  }
+
+  private async backfillLatestByLimit(type: CieHistoricLogType, desiredLimit: number) {
+    const target = Math.max(1, Math.min(this.options.logBackfillLimit, Math.floor(desiredLimit || 1)));
+
+    this.backfillInFlight += 1;
+    try {
+      const first = await this.client.getLog(type, 1);
+      const firstNormalized = this.logService.add(type, first);
+      if (firstNormalized) this.emit('cie.log.received', firstNormalized);
+
+      const totalByPayload = Number(first?.contador || 0);
+      const upperBound = Math.min(
+        target,
+        Number.isFinite(totalByPayload) && totalByPayload > 0 ? Math.floor(totalByPayload) : target
+      );
+
+      for (let i = 2; i <= upperBound; i += 1) {
+        try {
+          const log = await this.client.getLog(type, i);
+          const normalized = this.logService.add(type, log);
+          if (normalized) this.emit('cie.log.received', normalized);
+        } catch {
+          // keep backfill resilient
+        }
+      }
+    } catch {
+      // keep backfill resilient
+    } finally {
+      this.backfillInFlight = Math.max(0, this.backfillInFlight - 1);
+    }
   }
 
   private async backfillByRange(type: CieHistoricLogType, previousCounter: number, currentCounter: number) {
