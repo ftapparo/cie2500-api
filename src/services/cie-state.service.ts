@@ -33,9 +33,11 @@ export class CieStateService extends EventEmitter {
   private pollTimer: NodeJS.Timeout | null = null;
   private reconnectTimer: NodeJS.Timeout | null = null;
   private restartRecoveryTimer: NodeJS.Timeout | null = null;
+  private restartRecoveryInterval: NodeJS.Timeout | null = null;
   private warmupPromise: Promise<void> | null = null;
   private backfillInFlight = 0;
   private ensureByType: Partial<Record<CieLogType, Promise<void>>> = {};
+  private reconnectInFlight = false;
 
   private snapshot: CieStateSnapshot = {
     connected: false,
@@ -87,16 +89,17 @@ export class CieStateService extends EventEmitter {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
     }
+    if (this.restartRecoveryInterval) {
+      clearInterval(this.restartRecoveryInterval);
+      this.restartRecoveryInterval = null;
+    }
     if (this.restartRecoveryTimer) {
       clearTimeout(this.restartRecoveryTimer);
     }
-    // Fluxo oficial: aguarda alguns segundos após comando de restart
-    // antes de tentar reconectar.
+    // Aguarda a queda/subida da central e tenta reconectar continuamente por 1 minuto.
     this.restartRecoveryTimer = setTimeout(() => {
       this.restartRecoveryTimer = null;
-      void this.reconnectNow().catch(() => {
-        this.triggerReconnect();
-      });
+      this.startRestartRecoveryLoop();
     }, 8000);
     this.emit('cie.status.updated', this.getSnapshot());
   }
@@ -223,6 +226,8 @@ export class CieStateService extends EventEmitter {
   }
 
   async reconnectNow() {
+    if (this.reconnectInFlight) return;
+    this.reconnectInFlight = true;
     this.snapshot.reconnecting = true;
     this.snapshot.reconnectAttempt += 1;
     try {
@@ -252,9 +257,46 @@ export class CieStateService extends EventEmitter {
     } catch (error: any) {
       this.snapshot.lastError = this.isRestarting() ? null : (error?.message || String(error));
       this.setConnected(false);
-      this.triggerReconnect();
+      if (!this.isRestarting()) {
+        this.triggerReconnect();
+      }
       throw error;
+    } finally {
+      this.reconnectInFlight = false;
     }
+  }
+
+  private startRestartRecoveryLoop() {
+    if (!this.isRestarting()) return;
+    if (this.restartRecoveryInterval) return;
+
+    const deadline = Number(this.snapshot.restartingUntil || 0);
+    this.restartRecoveryInterval = setInterval(() => {
+      if (this.snapshot.connected) {
+        if (this.restartRecoveryInterval) {
+          clearInterval(this.restartRecoveryInterval);
+          this.restartRecoveryInterval = null;
+        }
+        return;
+      }
+
+      if (Date.now() >= deadline) {
+        if (this.restartRecoveryInterval) {
+          clearInterval(this.restartRecoveryInterval);
+          this.restartRecoveryInterval = null;
+        }
+        this.snapshot.lastError = 'Falha ao reconectar apos reinicio da central (timeout de 1 minuto).';
+        this.snapshot.reconnecting = false;
+        this.snapshot.restartingUntil = null;
+        this.emit('cie.status.updated', this.getSnapshot());
+        setTimeout(() => process.exit(1), 100);
+        return;
+      }
+
+      void this.reconnectNow().catch(() => {
+        // proxima tentativa ocorre automaticamente no proximo ciclo do intervalo
+      });
+    }, 5000);
   }
 
   private triggerReconnect() {
@@ -414,6 +456,10 @@ export class CieStateService extends EventEmitter {
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
+    }
+    if (this.restartRecoveryInterval) {
+      clearInterval(this.restartRecoveryInterval);
+      this.restartRecoveryInterval = null;
     }
     if (this.restartRecoveryTimer) {
       clearTimeout(this.restartRecoveryTimer);
