@@ -134,6 +134,12 @@ export async function executeCommand(
 ) {
   try {
     const response = await commandService.execute(action);
+    const buttonStatus = String((response as any)?.resposta || '');
+    if (buttonStatus && buttonStatus !== 'StatusBotaoOk' && buttonStatus !== 'StatusBotaoWaiting') {
+      const error = new Error(`Comando rejeitado pela central: ${buttonStatus}`);
+      (error as any).status = 409;
+      throw error;
+    }
     await stateService.refreshNow();
     return res.ok({
       action,
