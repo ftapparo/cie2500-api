@@ -116,6 +116,7 @@ export class CieStateService extends EventEmitter {
       this.previousCounters = getCounters(initial.status);
       this.setConnected(true);
       this.emit('cie.status.updated', this.getSnapshot());
+      this.logService.reset();
       this.warmupPromise = this.backfillAllTypes()
         .catch(() => {
           // ignore initial backfill failures
@@ -193,6 +194,7 @@ export class CieStateService extends EventEmitter {
       this.previousCounters = getCounters(initial.status);
       this.setConnected(true);
       this.emit('cie.status.updated', this.getSnapshot());
+      this.logService.reset();
       this.warmupPromise = this.backfillAllTypes()
         .catch(() => {
           // ignore reconnect backfill failures

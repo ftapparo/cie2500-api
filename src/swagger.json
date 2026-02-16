@@ -918,6 +918,100 @@
         },
         "parameters": []
       }
+    },
+    "/v1/api/cie/commands/release-bip": {
+      "post": {
+        "tags": [
+          "Comandos"
+        ],
+        "summary": "Reativar bip interno da central",
+        "responses": {
+          "200": {
+            "description": "Comando executado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
+            }
+          },
+          "409": {
+            "description": "Comando rejeitado pela central",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
+            }
+          }
+        },
+        "parameters": []
+      }
+    },
+    "/v1/api/cie/commands/release-siren": {
+      "post": {
+        "tags": [
+          "Comandos"
+        ],
+        "summary": "Reativar sirene da central",
+        "responses": {
+          "200": {
+            "description": "Comando executado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
+            }
+          },
+          "409": {
+            "description": "Comando rejeitado pela central",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
+            }
+          }
+        },
+        "parameters": []
+      }
     }
   },
   "components": {
@@ -1059,6 +1153,108 @@
               1
             ],
             "example": 1
+          }
+        }
+      },
+      "CieDeviceClassification": {
+        "type": "object",
+        "properties": {
+          "typeCode": {
+            "type": "integer",
+            "nullable": true,
+            "example": 3
+          },
+          "subtypeCode": {
+            "type": "integer",
+            "nullable": true,
+            "example": 12
+          },
+          "typeLabel": {
+            "type": "string",
+            "nullable": true,
+            "example": "Acionador Manual"
+          },
+          "subtypeLabel": {
+            "type": "string",
+            "nullable": true,
+            "example": "Acionador Manual"
+          },
+          "resolvedLabel": {
+            "type": "string",
+            "nullable": true,
+            "example": "Acionador Manual"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "codes",
+              "name",
+              "none"
+            ],
+            "example": "codes"
+          }
+        }
+      },
+      "CieLogItem": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "alarme",
+              "falha",
+              "supervisao",
+              "operacao",
+              "bloqueio"
+            ]
+          },
+          "id": {
+            "type": "integer"
+          },
+          "zone": {
+            "type": "integer",
+            "nullable": true
+          },
+          "address": {
+            "type": "integer",
+            "nullable": true
+          },
+          "loop": {
+            "type": "integer",
+            "nullable": true
+          },
+          "deviceName": {
+            "type": "string",
+            "nullable": true
+          },
+          "zoneName": {
+            "type": "string",
+            "nullable": true
+          },
+          "deviceClassification": {
+            "$ref": "#/components/schemas/CieDeviceClassification",
+            "nullable": true
+          },
+          "eventType": {
+            "type": "integer",
+            "nullable": true
+          },
+          "blocked": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "raw": {
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "integer"
           }
         }
       }

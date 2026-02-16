@@ -1,5 +1,5 @@
 import { trimNulls } from '../utils';
-import type { AlarmActiveSnapshot, CieLogType, NormalizedCieLog } from '../types/logs';
+import type { AlarmActiveSnapshot, CieDeviceClassification, CieLogType, NormalizedCieLog } from '../types/logs';
 
 type ListOptions = {
   type?: CieLogType;
@@ -85,6 +85,73 @@ function parseOccurredAt(raw: any): string {
   return new Date(Date.UTC(year, month - 1, day, hour, min, sec)).toISOString();
 }
 
+const DEVICE_TYPE_LABELS: Record<number, string> = {
+  0: 'Ausente',
+  1: 'Sensor de Fumaca',
+  2: 'Sensor de Temperatura',
+  3: 'Acionador Manual',
+  4: 'Modulo de Zona',
+  5: 'Modulo de Entrada',
+  9: 'Modulo de Entrada/Saida',
+  10: 'Sirene Audiovisual',
+  11: 'Alimentacao',
+};
+
+const DEVICE_SUBTYPE_LABELS: Record<number, string> = {
+  0: 'Nao informado',
+  1: 'Sensor de Fumaca',
+  2: 'Sensor de Temperatura',
+  3: 'Acionador Manual',
+  4: 'Modulo de Zona',
+  5: 'Modulo de Entrada',
+  9: 'Modulo de Entrada/Saida',
+  10: 'Sirene Audiovisual',
+  11: 'Alimentacao',
+  12: 'Acionador Manual',
+};
+
+function inferByName(deviceName: string | null): string | null {
+  if (!deviceName) return null;
+  const normalized = trimNulls(deviceName).trim().toLowerCase();
+  if (!normalized) return null;
+
+  if (normalized.includes('fuma')) return 'Sensor de Fumaca';
+  if (normalized.includes('temper')) return 'Sensor de Temperatura';
+  if (normalized.includes('acionador') || normalized.includes('botoeira')) return 'Acionador Manual';
+  if (normalized.includes('sirene')) return 'Sirene Audiovisual';
+  if (normalized.includes('aliment')) return 'Alimentacao';
+  if (normalized.includes('modulo')) return 'Modulo';
+  return null;
+}
+
+function classifyDevice(raw: any, deviceName: string | null): CieDeviceClassification | null {
+  const typeCode = toNumber(raw?.tipo_dispositivo);
+  const subtypeCode = toNumber(raw?.subtipo_dispositivo);
+  const typeLabel = typeCode !== null ? (DEVICE_TYPE_LABELS[typeCode] ?? null) : null;
+  const subtypeLabel = subtypeCode !== null ? (DEVICE_SUBTYPE_LABELS[subtypeCode] ?? null) : null;
+  const inferred = inferByName(deviceName);
+  const resolvedLabel = subtypeLabel || typeLabel || inferred || null;
+
+  if (
+    typeCode === null
+    && subtypeCode === null
+    && !typeLabel
+    && !subtypeLabel
+    && !resolvedLabel
+  ) {
+    return null;
+  }
+
+  return {
+    typeCode,
+    subtypeCode,
+    typeLabel,
+    subtypeLabel,
+    resolvedLabel,
+    source: subtypeLabel || typeLabel ? 'codes' : (inferred ? 'name' : 'none'),
+  };
+}
+
 export class CieLogService {
   private readonly ringSize: number;
   private readonly logs: NormalizedCieLog[] = [];
@@ -92,6 +159,11 @@ export class CieLogService {
 
   constructor(ringSize: number) {
     this.ringSize = Math.max(100, ringSize);
+  }
+
+  reset() {
+    this.logs.length = 0;
+    this.dedup.clear();
   }
 
   add(type: CieLogType, raw: any): NormalizedCieLog | null {
@@ -110,6 +182,7 @@ export class CieLogService {
     const key = `${resolvedType}:${id}:${address ?? 'na'}:${occurredAt}`;
     if (this.dedup.has(key)) return null;
 
+    const deviceName = normalizeString(raw?.nome_dispositivo);
     const log: NormalizedCieLog = {
       key,
       type: resolvedType,
@@ -117,8 +190,9 @@ export class CieLogService {
       zone,
       address,
       loop,
-      deviceName: normalizeString(raw?.nome_dispositivo),
+      deviceName,
       zoneName: normalizeString(raw?.nome_zona),
+      deviceClassification: classifyDevice(raw, deviceName),
       eventType: toNumber(raw?.tipo),
       blocked: typeof raw?.bloqueado === 'boolean' ? raw.bloqueado : (toNumber(raw?.bloqueado) === 1),
       occurredAt,
