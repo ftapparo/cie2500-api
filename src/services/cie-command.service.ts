@@ -32,6 +32,15 @@ type CommandMapping = {
 
 type MappingConfig = Record<CommandAction, CommandMapping | null>;
 
+const OFFICIAL_BUTTONS = {
+  BRIGADE_SIREN: 0,
+  ALARM_GENERAL: 1,
+  DELAY_RULE: 2,
+  RESTART_CENTRAL: 3,
+  SILENCE_SIREN: 4,
+  SILENCE_CENTRAL_BIP: 5,
+} as const;
+
 export class CieCommandService {
   private identifier = 0;
   private readonly client: CieClient;
@@ -39,28 +48,81 @@ export class CieCommandService {
 
   constructor(client: CieClient) {
     this.client = client;
-    const silenceDefault = this.readMapping('CIE_CMD_SILENCE_BUTTON', 'CIE_CMD_SILENCE_PARAM');
-    const releaseDefault = this.readMapping('CIE_CMD_RELEASE_BUTTON', 'CIE_CMD_RELEASE_PARAM');
-    const restartDefault = this.readMapping('CIE_CMD_RESTART_BUTTON', 'CIE_CMD_RESTART_PARAM');
+    const silenceDefault = this.readMapping(
+      'CIE_CMD_SILENCE_BUTTON',
+      'CIE_CMD_SILENCE_PARAM',
+      { button: OFFICIAL_BUTTONS.SILENCE_CENTRAL_BIP, parameter: 0 }
+    );
+    const releaseDefault = this.readMapping(
+      'CIE_CMD_RELEASE_BUTTON',
+      'CIE_CMD_RELEASE_PARAM',
+      // No software oficial, liberação de bip também usa o mesmo botão (toggle).
+      { button: OFFICIAL_BUTTONS.SILENCE_CENTRAL_BIP, parameter: 0 }
+    );
+    const restartDefault = this.readMapping(
+      'CIE_CMD_RESTART_BUTTON',
+      'CIE_CMD_RESTART_PARAM',
+      { button: OFFICIAL_BUTTONS.RESTART_CENTRAL, parameter: 0 }
+    );
     this.mapping = {
       silence: silenceDefault,
       release: releaseDefault,
-      'release-bip': this.readMapping('CIE_CMD_RELEASE_BIP_BUTTON', 'CIE_CMD_RELEASE_BIP_PARAM') ?? releaseDefault,
-      'release-siren': this.readMapping('CIE_CMD_RELEASE_SIREN_BUTTON', 'CIE_CMD_RELEASE_SIREN_PARAM') ?? releaseDefault,
+      'release-bip': this.readMapping(
+        'CIE_CMD_RELEASE_BIP_BUTTON',
+        'CIE_CMD_RELEASE_BIP_PARAM',
+        { button: OFFICIAL_BUTTONS.SILENCE_CENTRAL_BIP, parameter: 0 }
+      ),
+      'release-siren': this.readMapping(
+        'CIE_CMD_RELEASE_SIREN_BUTTON',
+        'CIE_CMD_RELEASE_SIREN_PARAM',
+        { button: OFFICIAL_BUTTONS.SILENCE_SIREN, parameter: 0 }
+      ),
       restart: restartDefault,
-      'brigade-siren': this.readMapping('CIE_CMD_BRIGADE_SIREN_BUTTON', 'CIE_CMD_BRIGADE_SIREN_PARAM'),
-      'alarm-general': this.readMapping('CIE_CMD_ALARM_GENERAL_BUTTON', 'CIE_CMD_ALARM_GENERAL_PARAM'),
-      'delay-siren': this.readMapping('CIE_CMD_DELAY_SIREN_BUTTON', 'CIE_CMD_DELAY_SIREN_PARAM'),
-      'silence-bip': this.readMapping('CIE_CMD_SILENCE_BIP_BUTTON', 'CIE_CMD_SILENCE_BIP_PARAM') ?? silenceDefault,
-      'silence-siren': this.readMapping('CIE_CMD_SILENCE_SIREN_BUTTON', 'CIE_CMD_SILENCE_SIREN_PARAM') ?? silenceDefault,
+      'brigade-siren': this.readMapping(
+        'CIE_CMD_BRIGADE_SIREN_BUTTON',
+        'CIE_CMD_BRIGADE_SIREN_PARAM',
+        { button: OFFICIAL_BUTTONS.BRIGADE_SIREN, parameter: 0 }
+      ),
+      'alarm-general': this.readMapping(
+        'CIE_CMD_ALARM_GENERAL_BUTTON',
+        'CIE_CMD_ALARM_GENERAL_PARAM',
+        { button: OFFICIAL_BUTTONS.ALARM_GENERAL, parameter: 0 }
+      ),
+      'delay-siren': this.readMapping(
+        'CIE_CMD_DELAY_SIREN_BUTTON',
+        'CIE_CMD_DELAY_SIREN_PARAM',
+        { button: OFFICIAL_BUTTONS.DELAY_RULE, parameter: 250 }
+      ),
+      'silence-bip': this.readMapping(
+        'CIE_CMD_SILENCE_BIP_BUTTON',
+        'CIE_CMD_SILENCE_BIP_PARAM',
+        { button: OFFICIAL_BUTTONS.SILENCE_CENTRAL_BIP, parameter: 0 }
+      ),
+      'silence-siren': this.readMapping(
+        'CIE_CMD_SILENCE_SIREN_BUTTON',
+        'CIE_CMD_SILENCE_SIREN_PARAM',
+        { button: OFFICIAL_BUTTONS.SILENCE_SIREN, parameter: 0 }
+      ),
     };
   }
 
-  private readMapping(buttonEnv: string, parameterEnv: string): CommandMapping | null {
-    const button = Number(process.env[buttonEnv]);
-    const parameter = Number(process.env[parameterEnv] ?? 0);
-    if (!Number.isFinite(button)) return null;
-    if (!Number.isFinite(parameter)) return null;
+  private readMapping(
+    buttonEnv: string,
+    parameterEnv: string,
+    fallback: CommandMapping
+  ): CommandMapping {
+    const rawButton = process.env[buttonEnv];
+    const rawParameter = process.env[parameterEnv];
+    const button = Number(rawButton);
+    const parameter = Number(rawParameter ?? fallback.parameter);
+    if (!Number.isFinite(button) || !Number.isFinite(parameter)) return fallback;
+
+    // Compatibilidade com .env legado (todos comandos em 0).
+    // Se o fallback oficial nao eh 0, considera 0 como placeholder e usa fallback.
+    if (rawButton === '0' && fallback.button !== 0) {
+      return fallback;
+    }
+
     return { button, parameter };
   }
 
