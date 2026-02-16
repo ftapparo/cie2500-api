@@ -22,24 +22,67 @@ function toNumber(value: unknown): number | null {
   return null;
 }
 
-function parseOccurredAt(rawDate: any): string {
+function parseFlexibleNumber(value: unknown, fallback: number, max: number): number {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    const n = Math.floor(value);
+    if (n >= 0 && n <= max) return n;
+  }
+
+  if (typeof value === 'string') {
+    const raw = value.trim().toLowerCase();
+    if (!raw) return fallback;
+
+    const decimalCandidate = Number(raw);
+    if (Number.isFinite(decimalCandidate)) {
+      const n = Math.floor(decimalCandidate);
+      if (n >= 0 && n <= max) return n;
+    }
+
+    if (raw.startsWith('0x') || /[a-f]/.test(raw)) {
+      const hex = parseInt(raw.replace(/^0x/, ''), 16);
+      if (Number.isFinite(hex) && hex >= 0 && hex <= max) return hex;
+    }
+  }
+
+  return fallback;
+}
+
+function parseOccurredAt(raw: any): string {
+  const dataStr = typeof raw?.data === 'string' ? raw.data.trim() : '';
+  const horaStr = typeof raw?.hora === 'string' ? raw.hora.trim() : '';
+  const dateMatch = dataStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  const timeMatch = horaStr.match(/^(\d{1,2}):(\d{1,2}):(\d{1,2})$/);
+
+  if (dateMatch && timeMatch) {
+    const day = Number(dateMatch[1]);
+    const month = Number(dateMatch[2]);
+    const year = Number(dateMatch[3]);
+    const hour = Number(timeMatch[1]);
+    const min = Number(timeMatch[2]);
+    const sec = Number(timeMatch[3]);
+    const valid = [day, month, year, hour, min, sec].every(Number.isFinite);
+    if (valid) {
+      return new Date(Date.UTC(year, month - 1, day, hour, min, sec)).toISOString();
+    }
+  }
+
+  const rawDate = raw?.date;
   if (!rawDate || typeof rawDate !== 'object') {
     return new Date().toISOString();
   }
 
   const year = Number(rawDate.year);
-  const month = parseInt(String(rawDate.month ?? '1'), 16);
-  const day = parseInt(String(rawDate.day ?? '1'), 16);
-  const hour = parseInt(String(rawDate.hour ?? '0'), 16);
-  const min = parseInt(String(rawDate.min ?? '0'), 16);
-  const sec = parseInt(String(rawDate.sec ?? '0'), 16);
+  const month = parseFlexibleNumber(rawDate.month, 1, 12);
+  const day = parseFlexibleNumber(rawDate.day, 1, 31);
+  const hour = parseFlexibleNumber(rawDate.hour, 0, 23);
+  const min = parseFlexibleNumber(rawDate.min, 0, 59);
+  const sec = parseFlexibleNumber(rawDate.sec, 0, 59);
 
-  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
+  if (!Number.isFinite(year) || year < 2000 || year > 2099) {
     return new Date().toISOString();
   }
 
-  const iso = new Date(Date.UTC(year, month - 1, day, hour || 0, min || 0, sec || 0)).toISOString();
-  return iso;
+  return new Date(Date.UTC(year, month - 1, day, hour, min, sec)).toISOString();
 }
 
 export class CieLogService {
@@ -63,7 +106,7 @@ export class CieLogService {
     const address = toNumber(raw?.endereco);
     const zone = toNumber(raw?.zona);
     const loop = toNumber(raw?.laco);
-    const occurredAt = parseOccurredAt(raw?.date);
+    const occurredAt = parseOccurredAt(raw);
     const key = `${resolvedType}:${id}:${address ?? 'na'}:${occurredAt}`;
     if (this.dedup.has(key)) return null;
 
