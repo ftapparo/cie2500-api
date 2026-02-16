@@ -1,7 +1,7 @@
 import { EventEmitter } from 'node:events';
 import type { CieClient } from '../core/cie-client';
 import type { CieLogService } from './cie-log.service';
-import type { CieLogType } from '../types/logs';
+import type { CieHistoricLogType, CieLogType } from '../types/logs';
 import type { CieStateSnapshot } from '../types/state';
 
 type CieStateServiceOptions = {
@@ -15,8 +15,6 @@ type StatusCounters = {
   supervisao: number;
   bloqueio: number;
 };
-
-const LOG_TYPES: ReadonlyArray<CieLogType> = ['alarme', 'falha', 'supervisao', 'operacao'];
 
 function getCounters(status: any): StatusCounters {
   return {
@@ -81,7 +79,7 @@ export class CieStateService extends EventEmitter {
         0: 'alarme',
         1: 'falha',
         2: 'supervisao',
-        3: 'operacao',
+        3: 'bloqueio',
       };
       const type = typeMap[Number(event?.tipo_evento)] || 'operacao';
       const normalized = this.logService.add(type, event);
@@ -230,7 +228,7 @@ export class CieStateService extends EventEmitter {
     await this.backfillByRange('operacao', 0, Math.min(this.options.logBackfillLimit, 50));
   }
 
-  private async backfillByRange(type: CieLogType, previousCounter: number, currentCounter: number) {
+  private async backfillByRange(type: CieHistoricLogType, previousCounter: number, currentCounter: number) {
     if (currentCounter <= 0) return;
     const end = currentCounter;
     const start = Math.max(1, Math.max(previousCounter + 1, end - this.options.logBackfillLimit + 1));

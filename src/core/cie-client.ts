@@ -1,7 +1,7 @@
 import { RequestQueue } from '../utils';
 import { CIE2500Native } from '../native/CIE2500Native';
-import type { DataHora, Info, Mac, NomeModelo, Status } from '../types/cie';
-import type { CieLogType } from '../types/logs';
+import type { BlockCounters, DataHora, Info, Mac, NomeModelo, OutputCounters, Status } from '../types/cie';
+import type { CieHistoricLogType } from '../types/logs';
 
 export type CieClientOptions = {
   ip: string;
@@ -99,7 +99,7 @@ export class CieClient {
     return this.queue.run(async () => this.cie.dataHora(this.opts.ip, this.opts.endereco));
   }
 
-  async getLog(type: CieLogType, number: number): Promise<any> {
+  async getLog(type: CieHistoricLogType, number: number): Promise<any> {
     return this.queue.run(async () => this.cie.getLog(this.opts.ip, this.opts.endereco, type, number));
   }
 
@@ -111,6 +111,32 @@ export class CieClient {
     return this.queue.run(async () =>
       this.cie.sendButtonCommand(this.opts.ip, this.opts.endereco, button, parameter, identifier)
     );
+  }
+
+  async changeBlockDevice(
+    tipoBloqueio: number,
+    laco: number,
+    numero: number,
+    bloquear: number,
+    identifier: number
+  ): Promise<any> {
+    return this.queue.run(async () =>
+      this.cie.changeBlockDevice(this.opts.ip, tipoBloqueio, laco, numero, bloquear, identifier)
+    );
+  }
+
+  async changeOutputDevice(laco: number, numero: number, ativo: number, identifier: number): Promise<any> {
+    return this.queue.run(async () =>
+      this.cie.changeOutputDevice(this.opts.ip, laco, numero, ativo, identifier)
+    );
+  }
+
+  async getBlocksCounters(): Promise<BlockCounters> {
+    return this.queue.run(async () => this.cie.getBlocksCounters(this.opts.ip, this.opts.endereco));
+  }
+
+  async getOutputsCounters(): Promise<OutputCounters> {
+    return this.queue.run(async () => this.cie.getOutputsCounters(this.opts.ip, this.opts.endereco));
   }
 
   onLog(fn: (e: any) => void) {

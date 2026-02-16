@@ -9,11 +9,21 @@ Base: `/v1/api`
 - `GET /health`
 - `GET /healthcheck`
 - `GET /cie/status`
+- `GET /cie/panel`
 - `GET /cie/alarms/active`
-- `GET /cie/logs?type=alarme|falha|supervisao|operacao&limit=50&cursor=0`
+- `GET /cie/logs?type=alarme|falha|supervisao|operacao|bloqueio&limit=50&cursor=0`
+- `GET /cie/counters/blocks`
+- `GET /cie/counters/outputs`
 - `POST /cie/commands/silence`
 - `POST /cie/commands/release`
 - `POST /cie/commands/restart`
+- `POST /cie/commands/brigade-siren`
+- `POST /cie/commands/alarm-general`
+- `POST /cie/commands/delay-siren`
+- `POST /cie/commands/silence-bip`
+- `POST /cie/commands/silence-siren`
+- `POST /cie/commands/block`
+- `POST /cie/commands/output`
 - `POST /cie/connection/reconnect`
 
 Swagger:

@@ -1,6 +1,27 @@
 import type { CieClient } from '../core/cie-client';
 
-export type CommandAction = 'silence' | 'release' | 'restart';
+export type CommandAction =
+  | 'silence'
+  | 'release'
+  | 'restart'
+  | 'brigade-siren'
+  | 'alarm-general'
+  | 'delay-siren'
+  | 'silence-bip'
+  | 'silence-siren';
+
+type BlockCommandPayload = {
+  tipoBloqueio: number;
+  laco: number;
+  numero: number;
+  bloquear: number;
+};
+
+type OutputCommandPayload = {
+  laco: number;
+  numero: number;
+  ativo: number;
+};
 
 type CommandMapping = {
   button: number;
@@ -20,6 +41,11 @@ export class CieCommandService {
       silence: this.readMapping('CIE_CMD_SILENCE_BUTTON', 'CIE_CMD_SILENCE_PARAM'),
       release: this.readMapping('CIE_CMD_RELEASE_BUTTON', 'CIE_CMD_RELEASE_PARAM'),
       restart: this.readMapping('CIE_CMD_RESTART_BUTTON', 'CIE_CMD_RESTART_PARAM'),
+      'brigade-siren': this.readMapping('CIE_CMD_BRIGADE_SIREN_BUTTON', 'CIE_CMD_BRIGADE_SIREN_PARAM'),
+      'alarm-general': this.readMapping('CIE_CMD_ALARM_GENERAL_BUTTON', 'CIE_CMD_ALARM_GENERAL_PARAM'),
+      'delay-siren': this.readMapping('CIE_CMD_DELAY_SIREN_BUTTON', 'CIE_CMD_DELAY_SIREN_PARAM'),
+      'silence-bip': this.readMapping('CIE_CMD_SILENCE_BIP_BUTTON', 'CIE_CMD_SILENCE_BIP_PARAM'),
+      'silence-siren': this.readMapping('CIE_CMD_SILENCE_SIREN_BUTTON', 'CIE_CMD_SILENCE_SIREN_PARAM'),
     };
   }
 
@@ -48,5 +74,28 @@ export class CieCommandService {
     const identifier = this.nextIdentifier();
     return this.client.sendButtonCommand(mapping.button, mapping.parameter, identifier);
   }
-}
 
+  executeBlockCommand(payload: BlockCommandPayload) {
+    const identifier = this.nextIdentifier();
+    return this.client.changeBlockDevice(
+      payload.tipoBloqueio,
+      payload.laco,
+      payload.numero,
+      payload.bloquear,
+      identifier
+    );
+  }
+
+  executeOutputCommand(payload: OutputCommandPayload) {
+    const identifier = this.nextIdentifier();
+    return this.client.changeOutputDevice(payload.laco, payload.numero, payload.ativo, identifier);
+  }
+
+  getBlockCounters() {
+    return this.client.getBlocksCounters();
+  }
+
+  getOutputCounters() {
+    return this.client.getOutputsCounters();
+  }
+}

@@ -15,6 +15,43 @@ export interface Info {
   regra: number; zona: number;
 }
 
+export interface BlockCounters {
+  dispositivo: number;
+  sirene: number;
+  saida: number;
+  atuador: number;
+  regra: number;
+  zona: number;
+  laco: number;
+  dispositivoLaco0: number;
+  dispositivoLaco1: number;
+  dispositivoLaco2: number;
+  saidaLaco0: number;
+  saidaLaco1: number;
+  saidaLaco2: number;
+  sireneLaco0: number;
+  sireneLaco1: number;
+  sireneLaco2: number;
+  atuadorLaco0: number;
+  atuadorLaco1: number;
+  atuadorLaco2: number;
+}
+
+export interface OutputCounters {
+  saidaLaco0: number;
+  saidaLaco1: number;
+  saidaLaco2: number;
+  sireneLaco0: number;
+  sireneLaco1: number;
+  sireneLaco2: number;
+  atuadorLaco0: number;
+  atuadorLaco1: number;
+  atuadorLaco2: number;
+  saida: number;
+  sirene: number;
+  atuador: number;
+}
+
 export interface Status {
   status: {
     alarme: number; falha: number; supervisao: number; bloqueio: number; regrasTemporizando: number;

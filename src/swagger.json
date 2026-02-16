@@ -112,6 +112,35 @@
         "parameters": []
       }
     },
+    "/v1/api/cie/panel": {
+      "get": {
+        "tags": [
+          "CIE"
+        ],
+        "summary": "Resumo consolidado do painel operacional da central",
+        "responses": {
+          "200": {
+            "description": "Painel retornado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
+            }
+          }
+        },
+        "parameters": []
+      }
+    },
     "/v1/api/cie/alarms/active": {
       "get": {
         "tags": [
@@ -158,7 +187,8 @@
                 "alarme",
                 "falha",
                 "supervisao",
-                "operacao"
+                "operacao",
+                "bloqueio"
               ]
             }
           },
@@ -220,6 +250,100 @@
             }
           }
         }
+      }
+    },
+    "/v1/api/cie/counters/blocks": {
+      "get": {
+        "tags": [
+          "CIE"
+        ],
+        "summary": "Contadores atuais de bloqueios",
+        "responses": {
+          "200": {
+            "description": "Contadores de bloqueio retornados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
+            }
+          },
+          "500": {
+            "description": "Falha ao consultar contadores de bloqueio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
+            }
+          }
+        },
+        "parameters": []
+      }
+    },
+    "/v1/api/cie/counters/outputs": {
+      "get": {
+        "tags": [
+          "CIE"
+        ],
+        "summary": "Contadores atuais de sa?das",
+        "responses": {
+          "200": {
+            "description": "Contadores de saida retornados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
+            }
+          },
+          "500": {
+            "description": "Falha ao consultar contadores de saida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
+            }
+          }
+        },
+        "parameters": []
       }
     },
     "/v1/api/cie/commands/silence": {
@@ -343,6 +467,391 @@
           },
           "409": {
             "description": "Comando nao mapeado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
+            }
+          }
+        },
+        "parameters": []
+      }
+    },
+    "/v1/api/cie/commands/brigade-siren": {
+      "post": {
+        "tags": [
+          "Comandos"
+        ],
+        "summary": "Acionar comando de sirene de brigada",
+        "responses": {
+          "200": {
+            "description": "Comando executado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
+            }
+          },
+          "409": {
+            "description": "Comando nao mapeado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
+            }
+          }
+        },
+        "parameters": []
+      }
+    },
+    "/v1/api/cie/commands/alarm-general": {
+      "post": {
+        "tags": [
+          "Comandos"
+        ],
+        "summary": "Acionar comando de alarme geral",
+        "responses": {
+          "200": {
+            "description": "Comando executado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
+            }
+          },
+          "409": {
+            "description": "Comando nao mapeado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
+            }
+          }
+        },
+        "parameters": []
+      }
+    },
+    "/v1/api/cie/commands/delay-siren": {
+      "post": {
+        "tags": [
+          "Comandos"
+        ],
+        "summary": "Acionar comando de adiar sirene",
+        "responses": {
+          "200": {
+            "description": "Comando executado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
+            }
+          },
+          "409": {
+            "description": "Comando nao mapeado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
+            }
+          }
+        },
+        "parameters": []
+      }
+    },
+    "/v1/api/cie/commands/silence-bip": {
+      "post": {
+        "tags": [
+          "Comandos"
+        ],
+        "summary": "Acionar comando de silenciar bip interno",
+        "responses": {
+          "200": {
+            "description": "Comando executado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
+            }
+          },
+          "409": {
+            "description": "Comando nao mapeado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
+            }
+          }
+        },
+        "parameters": []
+      }
+    },
+    "/v1/api/cie/commands/silence-siren": {
+      "post": {
+        "tags": [
+          "Comandos"
+        ],
+        "summary": "Acionar comando de silenciar sirene",
+        "responses": {
+          "200": {
+            "description": "Comando executado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
+            }
+          },
+          "409": {
+            "description": "Comando nao mapeado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
+            }
+          }
+        },
+        "parameters": []
+      }
+    },
+    "/v1/api/cie/commands/block": {
+      "post": {
+        "tags": [
+          "Comandos"
+        ],
+        "summary": "Bloquear ou desbloquear item da central",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CieBlockCommandRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Comando de bloqueio executado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
+            }
+          },
+          "400": {
+            "description": "Payload invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
+            }
+          },
+          "500": {
+            "description": "Falha ao executar comando de bloqueio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
+            }
+          }
+        },
+        "parameters": []
+      }
+    },
+    "/v1/api/cie/commands/output": {
+      "post": {
+        "tags": [
+          "Comandos"
+        ],
+        "summary": "Ativar ou desativar sa?da da central",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CieOutputCommandRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Comando de saida executado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
+            }
+          },
+          "400": {
+            "description": "Payload invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
+            }
+          },
+          "500": {
+            "description": "Falha ao executar comando de saida",
             "content": {
               "application/json": {
                 "schema": {
@@ -488,6 +997,68 @@
                 }
               }
             ]
+          }
+        }
+      },
+      "CieBlockCommandRequest": {
+        "type": "object",
+        "required": [
+          "tipoBloqueio",
+          "laco",
+          "numero",
+          "bloquear"
+        ],
+        "properties": {
+          "tipoBloqueio": {
+            "type": "integer",
+            "minimum": 0,
+            "example": 0
+          },
+          "laco": {
+            "type": "integer",
+            "minimum": 0,
+            "example": 1
+          },
+          "numero": {
+            "type": "integer",
+            "minimum": 0,
+            "example": 12
+          },
+          "bloquear": {
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ],
+            "example": 1
+          }
+        }
+      },
+      "CieOutputCommandRequest": {
+        "type": "object",
+        "required": [
+          "laco",
+          "numero",
+          "ativo"
+        ],
+        "properties": {
+          "laco": {
+            "type": "integer",
+            "minimum": 0,
+            "example": 1
+          },
+          "numero": {
+            "type": "integer",
+            "minimum": 0,
+            "example": 2
+          },
+          "ativo": {
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ],
+            "example": 1
           }
         }
       }

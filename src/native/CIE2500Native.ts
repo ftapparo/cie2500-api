@@ -1,6 +1,6 @@
 // src/native/CIE2500Native.ts
 import { EventEmitter } from 'node:events';
-import type { NomeModelo, Mac, Info, Status, DataHora } from '../types/cie';
+import type { NomeModelo, Mac, Info, Status, DataHora, BlockCounters, OutputCounters } from '../types/cie';
 
 // Ajuste os caminhos conforme onde você colocou os fontes da Intelbras
 const udpFactory = require('../intelbras/udp.js');
@@ -189,6 +189,39 @@ export class CIE2500Native extends EventEmitter {
   ): Promise<any> {
     this.RemoteOpperation.sendButtonCommand({ ip, endereco, botao, parametro, identificador });
     return onceWithTimeout<any>(this, 'udp_enviar_comando', this.requestTimeoutMs);
+  }
+
+  async changeBlockDevice(
+    ip: string,
+    tipoBloqueio: number,
+    laco: number,
+    numero: number,
+    bloquear: number,
+    identificador: number
+  ): Promise<any> {
+    this.RemoteOpperation.changeBlockDevice({ ip, tipoBloqueio, laco, numero, bloquear, identificador });
+    return onceWithTimeout<any>(this, `udp_bloquear#${numero}`, this.requestTimeoutMs);
+  }
+
+  async changeOutputDevice(
+    ip: string,
+    laco: number,
+    numero: number,
+    ativo: number,
+    identificador: number
+  ): Promise<any> {
+    this.RemoteOpperation.changeOutputDevice({ ip, laco, numero, ativo, identificador });
+    return onceWithTimeout<any>(this, 'udp_ativar_saida', this.requestTimeoutMs);
+  }
+
+  async getBlocksCounters(ip: string, endereco: number): Promise<BlockCounters> {
+    this.RemoteOpperation.getBlocksCounters({ ip, endereco });
+    return onceWithTimeout<BlockCounters>(this, 'udp_bloqueios_contadores', this.requestTimeoutMs);
+  }
+
+  async getOutputsCounters(ip: string, endereco: number): Promise<OutputCounters> {
+    this.RemoteOpperation.getOutputsCounters({ ip, endereco });
+    return onceWithTimeout<OutputCounters>(this, 'udp_saidas_contadores', this.requestTimeoutMs);
   }
 
   // ===== Eventos push (opcionalmente você pode criar "onStatus" tipado) =====

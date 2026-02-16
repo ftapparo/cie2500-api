@@ -1,5 +1,6 @@
-export type CieLogType = 'alarme' | 'falha' | 'supervisao' | 'operacao';
-export type CieEventType = CieLogType | 'bloqueio';
+export type CieLogType = 'alarme' | 'falha' | 'supervisao' | 'operacao' | 'bloqueio';
+export type CieEventType = CieLogType;
+export type CieHistoricLogType = Exclude<CieLogType, 'bloqueio'>;
 
 export type NormalizedCieLog = {
   key: string;
@@ -27,4 +28,3 @@ export type AlarmActiveSnapshot = {
   };
   latestAlarmLogs: NormalizedCieLog[];
 };
-
