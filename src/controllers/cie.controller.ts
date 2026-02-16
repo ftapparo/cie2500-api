@@ -31,7 +31,7 @@ export function getCieStatus(_req: Request, res: Response, stateService: CieStat
 
 export function getPanelStatus(_req: Request, res: Response, stateService: CieStateService, logService: CieLogService) {
   const snapshot = stateService.getSnapshot();
-  const latestFailureEvent = logService.latestReceivedByType('falha', 1)[0] ?? null;
+  const latestFailureEvent = logService.latestByType('falha', 1)[0] ?? null;
 
   return res.ok({
     online: snapshot.connected,
