@@ -10,5 +10,12 @@
     "strict": false,
     "outDir": "dist"
   },
-  "include": ["src/**/*"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "intelbras"
+  ]
 }

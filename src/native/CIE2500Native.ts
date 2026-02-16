@@ -1,4 +1,3 @@
-// src/native/CIE2500Native.ts
 import { EventEmitter } from 'node:events';
 import type { NomeModelo, Mac, Info, Status, DataHora, BlockCounters, OutputCounters } from '../types/cie';
 
@@ -80,7 +79,7 @@ export class CIE2500Native extends EventEmitter {
 
     // O udp.js espera uma função "wsSendFunction" — convertemos em eventos do Node
     this.udp = udpFactory((msg: Msg) => {
-      try { this.emit(msg.event, msg.data); } catch {}
+      try { this.emit(msg.event, msg.data); } catch { }
     });
 
     // Compatibilidade com código original (connectionController)
@@ -89,8 +88,8 @@ export class CIE2500Native extends EventEmitter {
       this.emit('conn_status', this.connected);
     };
 
-    this.RemoteOpperation   = remoteOpperationFactory(this.udp);
-    this.RemoteConnection   = remoteConnectionFactory(this.udp);
+    this.RemoteOpperation = remoteOpperationFactory(this.udp);
+    this.RemoteConnection = remoteConnectionFactory(this.udp);
   }
 
   setRequestTimeoutMs(ms: number) {
@@ -146,12 +145,12 @@ export class CIE2500Native extends EventEmitter {
 
   /** Encerramento completo (limpa handlers e fecha sockets) */
   async shutdown() {
-    try { this.udp.stopCommunication(); } catch {}
-    try { this.udp.setReceiverRemoteOpperationFn(undefined); } catch {}
-    try { this.udp.setReceiverRemoteConnectionFn(undefined); } catch {}
-    try { this.udp.socketRemoteOpperation?.close?.(); } catch {}
-    try { this.udp.socketRemoteConnection?.close?.(); } catch {}
-    try { this.udp.socketMulticast?.close?.(); } catch {}
+    try { this.udp.stopCommunication(); } catch { }
+    try { this.udp.setReceiverRemoteOpperationFn(undefined); } catch { }
+    try { this.udp.setReceiverRemoteConnectionFn(undefined); } catch { }
+    try { this.udp.socketRemoteOpperation?.close?.(); } catch { }
+    try { this.udp.socketRemoteConnection?.close?.(); } catch { }
+    try { this.udp.socketMulticast?.close?.(); } catch { }
   }
 
   // ====== Métodos de leitura (tipados) ======
@@ -183,7 +182,7 @@ export class CIE2500Native extends EventEmitter {
     // Corrige 'utc' a partir do timestamp (evita 1925)
     const ts = Number(raw?.timestamp);
     const date = isFinite(ts) ? new Date(ts) : new Date();
-    const utcISO  = date.toISOString();
+    const utcISO = date.toISOString();
     const localBR = date.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
 
     return { timestamp: ts, utc: utcISO, local: localBR };
@@ -265,7 +264,7 @@ export class CIE2500Native extends EventEmitter {
 
   // ===== Eventos push (opcionalmente você pode criar "onStatus" tipado) =====
   onEvento(fn: (e: any) => void) { this.on('udp_evento', fn); return () => this.off('udp_evento', fn); }
-  onLog(fn: (e: any) => void)    { this.on('udp_log', fn);    return () => this.off('udp_log', fn); }
+  onLog(fn: (e: any) => void) { this.on('udp_log', fn); return () => this.off('udp_log', fn); }
   onConnectionStatus(fn: (connected: boolean) => void) {
     this.on('conn_status', fn);
     return () => this.off('conn_status', fn);
