@@ -32,6 +32,7 @@ export class CieStateService extends EventEmitter {
 
   private pollTimer: NodeJS.Timeout | null = null;
   private reconnectTimer: NodeJS.Timeout | null = null;
+  private restartRecoveryTimer: NodeJS.Timeout | null = null;
   private warmupPromise: Promise<void> | null = null;
   private backfillInFlight = 0;
   private ensureByType: Partial<Record<CieLogType, Promise<void>>> = {};
@@ -82,7 +83,21 @@ export class CieStateService extends EventEmitter {
     this.snapshot.reconnecting = true;
     this.snapshot.reconnectAttempt = 0;
     this.setConnected(false);
-    this.triggerReconnect();
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+    if (this.restartRecoveryTimer) {
+      clearTimeout(this.restartRecoveryTimer);
+    }
+    // Fluxo oficial: aguarda alguns segundos após comando de restart
+    // antes de tentar reconectar.
+    this.restartRecoveryTimer = setTimeout(() => {
+      this.restartRecoveryTimer = null;
+      void this.reconnectNow().catch(() => {
+        this.triggerReconnect();
+      });
+    }, 8000);
     this.emit('cie.status.updated', this.getSnapshot());
   }
 
@@ -119,7 +134,9 @@ export class CieStateService extends EventEmitter {
     this.client.onConnectionStatus((connected) => {
       this.setConnected(connected);
       if (!connected) {
-        this.triggerReconnect();
+        if (!this.isRestarting()) {
+          this.triggerReconnect();
+        }
       } else {
         this.snapshot.lastError = null;
         this.snapshot.reconnecting = false;
@@ -397,6 +414,10 @@ export class CieStateService extends EventEmitter {
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
+    }
+    if (this.restartRecoveryTimer) {
+      clearTimeout(this.restartRecoveryTimer);
+      this.restartRecoveryTimer = null;
     }
     await this.client.shutdown();
     this.snapshot.restartingUntil = null;

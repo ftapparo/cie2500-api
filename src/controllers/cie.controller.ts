@@ -137,16 +137,6 @@ export async function executeCommand(
   stateService: CieStateService
 ) {
   const isRestartCommand = action === 'restart';
-  const isExpectedRestartTransitionError = (error: any): boolean => {
-    const status = Number(error?.status || 0);
-    const rawMessage = String(error?.message || '').toLowerCase();
-    if (status === 502 || status === 503 || status === 504) return true;
-    return rawMessage.includes('timeout')
-      || rawMessage.includes('network')
-      || rawMessage.includes('socket')
-      || rawMessage.includes('enetunreach')
-      || rawMessage.includes('econn');
-  };
 
   try {
     const response = await commandService.execute(action);
@@ -159,11 +149,6 @@ export async function executeCommand(
 
     if (isRestartCommand) {
       stateService.markRestarting(60000);
-      setTimeout(() => {
-        void stateService.reconnectNow().catch(() => {
-          // reconnect loop remains active in state service
-        });
-      }, 3000);
     } else {
       await stateService.refreshNow();
     }
@@ -174,24 +159,6 @@ export async function executeCommand(
       snapshot: stateService.getSnapshot(),
     });
   } catch (error: any) {
-    if (isRestartCommand && isExpectedRestartTransitionError(error)) {
-      stateService.markRestarting(60000);
-      setTimeout(() => {
-        void stateService.reconnectNow().catch(() => {
-          // reconnect loop remains active in state service
-        });
-      }, 3000);
-
-      return res.ok({
-        action,
-        response: {
-          resposta: 'StatusBotaoWaiting',
-          detalhe: 'Reinicio em andamento. Conexao sera restabelecida automaticamente.',
-        },
-        snapshot: stateService.getSnapshot(),
-      });
-    }
-
     return res.fail(error?.message || 'Falha ao executar comando.', Number(error?.status || 500), error);
   }
 }
