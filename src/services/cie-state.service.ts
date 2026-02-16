@@ -70,7 +70,14 @@ export class CieStateService extends EventEmitter {
 
   async start() {
     this.client.onLog((log) => {
-      const normalized = this.logService.add('operacao', log);
+      const typeMap: Record<number, CieLogType> = {
+        0: 'alarme',
+        1: 'falha',
+        2: 'supervisao',
+        3: 'operacao',
+      };
+      const parsedType = typeMap[Number(log?.tipo_evento)];
+      const normalized = this.logService.add(parsedType || 'operacao', log);
       if (normalized) this.emit('cie.log.received', normalized);
     });
 

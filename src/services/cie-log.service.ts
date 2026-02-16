@@ -52,17 +52,24 @@ export class CieLogService {
   }
 
   add(type: CieLogType, raw: any): NormalizedCieLog | null {
+    const typeByEvent: Record<number, CieLogType> = {
+      0: 'alarme',
+      1: 'falha',
+      2: 'supervisao',
+      3: 'operacao',
+    };
+    const resolvedType = typeByEvent[Number(raw?.tipo_evento)] || type;
     const id = toNumber(raw?.id) ?? 0;
     const address = toNumber(raw?.endereco);
     const zone = toNumber(raw?.zona);
     const loop = toNumber(raw?.laco);
     const occurredAt = parseOccurredAt(raw?.date);
-    const key = `${type}:${id}:${address ?? 'na'}:${occurredAt}`;
+    const key = `${resolvedType}:${id}:${address ?? 'na'}:${occurredAt}`;
     if (this.dedup.has(key)) return null;
 
     const log: NormalizedCieLog = {
       key,
-      type,
+      type: resolvedType,
       id,
       zone,
       address,
@@ -115,4 +122,3 @@ export class CieLogService {
     };
   }
 }
-
