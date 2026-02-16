@@ -51,11 +51,7 @@
             }
           }
         },
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/ActorHeaderParam"
-          }
-        ]
+        "parameters": []
       }
     },
     "/v1/api/healthcheck": {
@@ -84,11 +80,7 @@
             }
           }
         },
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/ActorHeaderParam"
-          }
-        ]
+        "parameters": []
       }
     },
     "/v1/api/cie/status": {
@@ -117,11 +109,7 @@
             }
           }
         },
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/ActorHeaderParam"
-          }
-        ]
+        "parameters": []
       }
     },
     "/v1/api/cie/alarms/active": {
@@ -150,11 +138,7 @@
             }
           }
         },
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/ActorHeaderParam"
-          }
-        ]
+        "parameters": []
       }
     },
     "/v1/api/cie/logs": {
@@ -164,9 +148,6 @@
         ],
         "summary": "Lista logs normalizados",
         "parameters": [
-          {
-            "$ref": "#/components/parameters/ActorHeaderParam"
-          },
           {
             "in": "query",
             "name": "type",
@@ -285,11 +266,7 @@
             }
           }
         },
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/ActorHeaderParam"
-          }
-        ]
+        "parameters": []
       }
     },
     "/v1/api/cie/commands/release": {
@@ -336,11 +313,7 @@
             }
           }
         },
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/ActorHeaderParam"
-          }
-        ]
+        "parameters": []
       }
     },
     "/v1/api/cie/commands/restart": {
@@ -387,11 +360,7 @@
             }
           }
         },
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/ActorHeaderParam"
-          }
-        ]
+        "parameters": []
       }
     },
     "/v1/api/cie/connection/reconnect": {
@@ -438,11 +407,7 @@
             }
           }
         },
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/ActorHeaderParam"
-          }
-        ]
+        "parameters": []
       }
     }
   },
@@ -541,29 +506,6 @@
           "type": "string",
           "example": "PORTARIA"
         }
-      }
-    },
-    "parameters": {
-      "RequestIdHeaderParam": {
-        "name": "x-request-id",
-        "in": "header",
-        "required": false,
-        "description": "Identificador unico da requisicao (enviado pelo cliente ou gerado pelo servidor).",
-        "schema": {
-          "type": "string",
-          "example": "f25f63b8-2b89-4fc0-8a2e-7b2e8c7d6f53"
-        }
-      },
-      "ActorHeaderParam": {
-        "name": "x-user",
-        "in": "header",
-        "required": false,
-        "description": "Identificacao do ator da operacao (ex.: PORTARIA).",
-        "schema": {
-          "type": "string",
-          "example": "PORTARIA"
-        },
-        "example": "SWAGGER"
       }
     }
   }
