@@ -18,6 +18,35 @@ function onceWithTimeout<T = any>(em: EventEmitter, event: string, ms = 8000): P
   });
 }
 
+function onceWithTimeoutWhere<T = any>(
+  em: EventEmitter,
+  event: string,
+  predicate: (data: any) => boolean,
+  ms = 8000
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const handler = (data: any) => {
+      try {
+        if (!predicate(data)) return;
+        cleanup();
+        resolve(data as T);
+      } catch (error) {
+        cleanup();
+        reject(error);
+      }
+    };
+    const to = setTimeout(() => {
+      cleanup();
+      reject(new Error(`timeout waiting ${event}`));
+    }, ms);
+    const cleanup = () => {
+      clearTimeout(to);
+      em.off(event, handler);
+    };
+    em.on(event, handler);
+  });
+}
+
 function waitAny(
   em: EventEmitter,
   events: string[],
@@ -167,7 +196,12 @@ export class CIE2500Native extends EventEmitter {
     numero: number
   ): Promise<any> {
     this.RemoteOpperation.getEvent({ ip, endereco, evento, numero });
-    return onceWithTimeout<any>(this, `udp_evento#${numero}`, this.requestTimeoutMs);
+    return onceWithTimeoutWhere<any>(
+      this,
+      'udp_evento',
+      (payload) => Number(payload?.numero) === Number(numero),
+      this.requestTimeoutMs
+    );
   }
 
   async getLog(
@@ -177,7 +211,12 @@ export class CIE2500Native extends EventEmitter {
     numero: number
   ): Promise<any> {
     this.RemoteOpperation.getLog({ ip, endereco, evento, numero });
-    return onceWithTimeout<any>(this, `udp_log#${numero}`, this.requestTimeoutMs);
+    return onceWithTimeoutWhere<any>(
+      this,
+      'udp_log',
+      (payload) => Number(payload?.numero) === Number(numero),
+      this.requestTimeoutMs
+    );
   }
 
   async sendButtonCommand(

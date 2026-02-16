@@ -88,6 +88,24 @@ export function listLogs(req: Request, res: Response, logService: CieLogService)
   });
 }
 
+export async function listLogsWithWarmupGuard(
+  req: Request,
+  res: Response,
+  logService: CieLogService,
+  stateService: CieStateService
+) {
+  const type = req.query.type;
+  const limit = parseLimit(req.query.limit, 50);
+  const cursor = typeof req.query.cursor === 'string' ? req.query.cursor : undefined;
+  if (!cursor && typeof type === 'string' && LOG_TYPES.includes(type as CieLogType)) {
+    await stateService.ensureLogs(type as CieLogType, limit);
+  } else if (!cursor && stateService.isWarmingUp()) {
+    await stateService.waitForWarmup(12000);
+  }
+
+  return listLogs(req, res, logService);
+}
+
 export async function getBlockCounters(_req: Request, res: Response, commandService: CieCommandService) {
   try {
     const counters = await commandService.getBlockCounters();

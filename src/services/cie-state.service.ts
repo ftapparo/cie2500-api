@@ -32,6 +32,9 @@ export class CieStateService extends EventEmitter {
 
   private pollTimer: NodeJS.Timeout | null = null;
   private reconnectTimer: NodeJS.Timeout | null = null;
+  private warmupPromise: Promise<void> | null = null;
+  private backfillInFlight = 0;
+  private ensureByType: Partial<Record<CieLogType, Promise<void>>> = {};
 
   private snapshot: CieStateSnapshot = {
     connected: false,
@@ -53,7 +56,7 @@ export class CieStateService extends EventEmitter {
     this.client = client;
     this.logService = logService;
     this.options = {
-      pollMs: Math.max(3000, options.pollMs),
+      pollMs: Math.max(1000, options.pollMs),
       logBackfillLimit: Math.max(1, options.logBackfillLimit),
     };
   }
@@ -113,9 +116,13 @@ export class CieStateService extends EventEmitter {
       this.previousCounters = getCounters(initial.status);
       this.setConnected(true);
       this.emit('cie.status.updated', this.getSnapshot());
-      void this.backfillAllTypes().catch(() => {
-        // ignore initial backfill failures
-      });
+      this.warmupPromise = this.backfillAllTypes()
+        .catch(() => {
+          // ignore initial backfill failures
+        })
+        .finally(() => {
+          this.warmupPromise = null;
+        });
     } catch (error: any) {
       this.snapshot.lastError = error?.message || String(error);
       this.setConnected(false);
@@ -128,6 +135,7 @@ export class CieStateService extends EventEmitter {
   private startPolling() {
     if (this.pollTimer) return;
     this.pollTimer = setInterval(() => {
+      if (this.backfillInFlight > 0) return;
       void this.refreshNow();
     }, this.options.pollMs);
   }
@@ -185,9 +193,13 @@ export class CieStateService extends EventEmitter {
       this.previousCounters = getCounters(initial.status);
       this.setConnected(true);
       this.emit('cie.status.updated', this.getSnapshot());
-      void this.backfillAllTypes().catch(() => {
-        // ignore reconnect backfill failures
-      });
+      this.warmupPromise = this.backfillAllTypes()
+        .catch(() => {
+          // ignore reconnect backfill failures
+        })
+        .finally(() => {
+          this.warmupPromise = null;
+        });
     } catch (error: any) {
       this.snapshot.lastError = error?.message || String(error);
       this.setConnected(false);
@@ -235,19 +247,91 @@ export class CieStateService extends EventEmitter {
     await this.backfillByRange('operacao', 0, Math.min(this.options.logBackfillLimit, 50));
   }
 
+  async ensureLogs(type: CieLogType, limit: number): Promise<void> {
+    const desired = Math.max(1, Math.min(200, Math.floor(limit || 1)));
+    const existing = this.logService.latestByType(type, desired).length;
+    if (existing >= desired) return;
+
+    if (this.ensureByType[type]) {
+      await this.ensureByType[type];
+      return;
+    }
+
+    const run = (async () => {
+      if (type === 'operacao') {
+        const maxOp = Math.min(this.options.logBackfillLimit, 50);
+        const target = Math.min(desired, maxOp);
+        await this.backfillByRange('operacao', 0, target);
+        return;
+      }
+
+      if (!this.snapshot.status) return;
+      const counters = getCounters(this.snapshot.status);
+
+      if (type === 'alarme') {
+        await this.backfillByRange('alarme', 0, counters.alarme);
+        return;
+      }
+
+      if (type === 'falha') {
+        await this.backfillByRange('falha', 0, counters.falha);
+        return;
+      }
+
+      if (type === 'supervisao') {
+        await this.backfillByRange('supervisao', 0, counters.supervisao);
+        return;
+      }
+    })()
+      .finally(() => {
+        delete this.ensureByType[type];
+      });
+
+    this.ensureByType[type] = run;
+    await run;
+  }
+
   private async backfillByRange(type: CieHistoricLogType, previousCounter: number, currentCounter: number) {
     if (currentCounter <= 0) return;
     const end = currentCounter;
     const start = Math.max(1, Math.max(previousCounter + 1, end - this.options.logBackfillLimit + 1));
 
-    for (let i = start; i <= end; i += 1) {
-      try {
-        const log = await this.client.getLog(type, i);
-        const normalized = this.logService.add(type, log);
-        if (normalized) this.emit('cie.log.received', normalized);
-      } catch {
-        // keep polling loop resilient
+    this.backfillInFlight += 1;
+    try {
+      for (let i = start; i <= end; i += 1) {
+        try {
+          const log = await this.client.getLog(type, i);
+          const normalized = this.logService.add(type, log);
+          if (normalized) this.emit('cie.log.received', normalized);
+        } catch {
+          // keep polling loop resilient
+        }
       }
+    } finally {
+      this.backfillInFlight = Math.max(0, this.backfillInFlight - 1);
+    }
+  }
+
+  isWarmingUp(): boolean {
+    return this.warmupPromise !== null;
+  }
+
+  async waitForWarmup(maxWaitMs = 12000): Promise<boolean> {
+    if (!this.warmupPromise) {
+      return true;
+    }
+
+    let timeoutId: NodeJS.Timeout | null = null;
+    try {
+      await Promise.race([
+        this.warmupPromise,
+        new Promise<void>((resolve) => {
+          timeoutId = setTimeout(resolve, Math.max(0, maxWaitMs));
+        }),
+      ]);
+      return this.warmupPromise === null;
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
     }
   }
 

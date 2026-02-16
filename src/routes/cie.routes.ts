@@ -8,7 +8,7 @@ import {
   getCieStatus,
   getOutputCounters,
   getPanelStatus,
-  listLogs,
+  listLogsWithWarmupGuard,
   reconnectConnection,
 } from '../controllers/cie.controller';
 import type { CieManager } from '../core/cie-manager';
@@ -22,7 +22,7 @@ export default function cieRoutes(cieInstance: CieManager) {
   router.get('/cie/status', (req, res) => getCieStatus(req, res, stateService));
   router.get('/cie/panel', (req, res) => getPanelStatus(req, res, stateService, logService));
   router.get('/cie/alarms/active', (req, res) => getActiveAlarms(req, res, stateService, logService));
-  router.get('/cie/logs', (req, res) => listLogs(req, res, logService));
+  router.get('/cie/logs', (req, res) => listLogsWithWarmupGuard(req, res, logService, stateService));
   router.get('/cie/counters/blocks', (req, res) => getBlockCounters(req, res, commandService));
   router.get('/cie/counters/outputs', (req, res) => getOutputCounters(req, res, commandService));
 

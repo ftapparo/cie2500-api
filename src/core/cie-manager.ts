@@ -25,7 +25,7 @@ export class CieManager {
     const CIE_IP = process.env.CIE_IP || '192.168.0.4';
     const CIE_PASSWORD = process.env.CIE_PASSWORD || '444444';
     const CIE_ENDERECO = Number(process.env.CIE_ENDERECO ?? 0);
-    const CIE_POLL_MS = Number(process.env.CIE_POLL_MS || 4000);
+    const CIE_POLL_MS = Number(process.env.CIE_POLL_MS || 1000);
     const CIE_REQUEST_TIMEOUT_MS = Number(process.env.CIE_REQUEST_TIMEOUT_MS || 10000);
     const CIE_LOG_BACKFILL_LIMIT = Number(process.env.CIE_LOG_BACKFILL_LIMIT || 50);
     const CIE_LOG_RING_SIZE = Number(process.env.CIE_LOG_RING_SIZE || 1000);
