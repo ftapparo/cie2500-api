@@ -37,15 +37,17 @@ export class CieCommandService {
 
   constructor(client: CieClient) {
     this.client = client;
+    const silenceDefault = this.readMapping('CIE_CMD_SILENCE_BUTTON', 'CIE_CMD_SILENCE_PARAM');
+    const restartDefault = this.readMapping('CIE_CMD_RESTART_BUTTON', 'CIE_CMD_RESTART_PARAM');
     this.mapping = {
-      silence: this.readMapping('CIE_CMD_SILENCE_BUTTON', 'CIE_CMD_SILENCE_PARAM'),
+      silence: silenceDefault,
       release: this.readMapping('CIE_CMD_RELEASE_BUTTON', 'CIE_CMD_RELEASE_PARAM'),
-      restart: this.readMapping('CIE_CMD_RESTART_BUTTON', 'CIE_CMD_RESTART_PARAM'),
+      restart: restartDefault,
       'brigade-siren': this.readMapping('CIE_CMD_BRIGADE_SIREN_BUTTON', 'CIE_CMD_BRIGADE_SIREN_PARAM'),
       'alarm-general': this.readMapping('CIE_CMD_ALARM_GENERAL_BUTTON', 'CIE_CMD_ALARM_GENERAL_PARAM'),
       'delay-siren': this.readMapping('CIE_CMD_DELAY_SIREN_BUTTON', 'CIE_CMD_DELAY_SIREN_PARAM'),
-      'silence-bip': this.readMapping('CIE_CMD_SILENCE_BIP_BUTTON', 'CIE_CMD_SILENCE_BIP_PARAM'),
-      'silence-siren': this.readMapping('CIE_CMD_SILENCE_SIREN_BUTTON', 'CIE_CMD_SILENCE_SIREN_PARAM'),
+      'silence-bip': this.readMapping('CIE_CMD_SILENCE_BIP_BUTTON', 'CIE_CMD_SILENCE_BIP_PARAM') ?? silenceDefault,
+      'silence-siren': this.readMapping('CIE_CMD_SILENCE_SIREN_BUTTON', 'CIE_CMD_SILENCE_SIREN_PARAM') ?? silenceDefault,
     };
   }
 
