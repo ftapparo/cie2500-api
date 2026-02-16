@@ -8,6 +8,7 @@ import healthRoutes from '../routes/health.routes';
 import cieRoutes from '../routes/cie.routes';
 import { responseHandler } from '../middleware/response-handler';
 import { CieManager } from '../core/cie-manager';
+import { requestContextMiddleware } from '../middleware/request-context';
 
 
 export async function StartWebServer(cieInstance: CieManager): Promise<void> {
@@ -34,6 +35,7 @@ export async function StartWebServer(cieInstance: CieManager): Promise<void> {
      * Middleware para parsear JSON nas requisições.
      */
     app.use(express.json());
+    app.use(requestContextMiddleware);
 
     /**
      * Middleware para padronizar respostas da API.

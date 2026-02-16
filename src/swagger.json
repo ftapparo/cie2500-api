@@ -27,7 +27,9 @@
   "paths": {
     "/v1/api/health": {
       "get": {
-        "tags": ["Monitoramento"],
+        "tags": [
+          "Monitoramento"
+        ],
         "summary": "Healthcheck principal",
         "responses": {
           "200": {
@@ -38,14 +40,32 @@
                   "$ref": "#/components/schemas/ApiResponse"
                 }
               }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ActorHeaderParam"
+          },
+          {
+            "$ref": "#/components/parameters/RequestIdHeaderParam"
+          }
+        ]
       }
     },
     "/v1/api/healthcheck": {
       "get": {
-        "tags": ["Monitoramento"],
+        "tags": [
+          "Monitoramento"
+        ],
         "summary": "Healthcheck alternativo",
         "responses": {
           "200": {
@@ -56,14 +76,32 @@
                   "$ref": "#/components/schemas/ApiResponse"
                 }
               }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ActorHeaderParam"
+          },
+          {
+            "$ref": "#/components/parameters/RequestIdHeaderParam"
+          }
+        ]
       }
     },
     "/v1/api/cie/status": {
       "get": {
-        "tags": ["CIE"],
+        "tags": [
+          "CIE"
+        ],
         "summary": "Snapshot atual da central",
         "responses": {
           "200": {
@@ -74,14 +112,32 @@
                   "$ref": "#/components/schemas/ApiResponse"
                 }
               }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ActorHeaderParam"
+          },
+          {
+            "$ref": "#/components/parameters/RequestIdHeaderParam"
+          }
+        ]
       }
     },
     "/v1/api/cie/alarms/active": {
       "get": {
-        "tags": ["CIE"],
+        "tags": [
+          "CIE"
+        ],
         "summary": "Alarmes ativos e counters",
         "responses": {
           "200": {
@@ -92,23 +148,52 @@
                   "$ref": "#/components/schemas/ApiResponse"
                 }
               }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ActorHeaderParam"
+          },
+          {
+            "$ref": "#/components/parameters/RequestIdHeaderParam"
+          }
+        ]
       }
     },
     "/v1/api/cie/logs": {
       "get": {
-        "tags": ["CIE"],
+        "tags": [
+          "CIE"
+        ],
         "summary": "Lista logs normalizados",
         "parameters": [
+          {
+            "$ref": "#/components/parameters/ActorHeaderParam"
+          },
+          {
+            "$ref": "#/components/parameters/RequestIdHeaderParam"
+          },
           {
             "in": "query",
             "name": "type",
             "required": false,
             "schema": {
               "type": "string",
-              "enum": ["alarme", "falha", "supervisao", "operacao"]
+              "enum": [
+                "alarme",
+                "falha",
+                "supervisao",
+                "operacao"
+              ]
             }
           },
           {
@@ -140,6 +225,14 @@
                   "$ref": "#/components/schemas/ApiResponse"
                 }
               }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
             }
           },
           "400": {
@@ -150,6 +243,14 @@
                   "$ref": "#/components/schemas/ApiErrorResponse"
                 }
               }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
             }
           }
         }
@@ -157,7 +258,9 @@
     },
     "/v1/api/cie/commands/silence": {
       "post": {
-        "tags": ["Comandos"],
+        "tags": [
+          "Comandos"
+        ],
         "summary": "Silenciar alarme/sirene",
         "responses": {
           "200": {
@@ -168,6 +271,14 @@
                   "$ref": "#/components/schemas/ApiResponse"
                 }
               }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
             }
           },
           "409": {
@@ -178,14 +289,32 @@
                   "$ref": "#/components/schemas/ApiErrorResponse"
                 }
               }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ActorHeaderParam"
+          },
+          {
+            "$ref": "#/components/parameters/RequestIdHeaderParam"
+          }
+        ]
       }
     },
     "/v1/api/cie/commands/release": {
       "post": {
-        "tags": ["Comandos"],
+        "tags": [
+          "Comandos"
+        ],
         "summary": "Liberar sirenes",
         "responses": {
           "200": {
@@ -196,6 +325,14 @@
                   "$ref": "#/components/schemas/ApiResponse"
                 }
               }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
             }
           },
           "409": {
@@ -206,14 +343,32 @@
                   "$ref": "#/components/schemas/ApiErrorResponse"
                 }
               }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ActorHeaderParam"
+          },
+          {
+            "$ref": "#/components/parameters/RequestIdHeaderParam"
+          }
+        ]
       }
     },
     "/v1/api/cie/commands/restart": {
       "post": {
-        "tags": ["Comandos"],
+        "tags": [
+          "Comandos"
+        ],
         "summary": "Reiniciar central",
         "responses": {
           "200": {
@@ -224,6 +379,14 @@
                   "$ref": "#/components/schemas/ApiResponse"
                 }
               }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
             }
           },
           "409": {
@@ -234,14 +397,32 @@
                   "$ref": "#/components/schemas/ApiErrorResponse"
                 }
               }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ActorHeaderParam"
+          },
+          {
+            "$ref": "#/components/parameters/RequestIdHeaderParam"
+          }
+        ]
       }
     },
     "/v1/api/cie/connection/reconnect": {
       "post": {
-        "tags": ["Comandos"],
+        "tags": [
+          "Comandos"
+        ],
         "summary": "Forcar reconexao com a central",
         "responses": {
           "200": {
@@ -251,6 +432,14 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponse"
                 }
+              }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
               }
             }
           },
@@ -262,9 +451,25 @@
                   "$ref": "#/components/schemas/ApiErrorResponse"
                 }
               }
+            },
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestIdHeader"
+              },
+              "x-actor": {
+                "$ref": "#/components/headers/ActorHeader"
+              }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ActorHeaderParam"
+          },
+          {
+            "$ref": "#/components/parameters/RequestIdHeaderParam"
+          }
+        ]
       }
     }
   },
@@ -284,27 +489,108 @@
             "nullable": true
           }
         },
-        "required": ["data", "message", "errors"]
+        "required": [
+          "data",
+          "message",
+          "errors"
+        ]
       },
       "ApiErrorResponse": {
         "type": "object",
         "properties": {
           "data": {
-            "type": "object",
             "nullable": true,
+            "oneOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              },
+              {
+                "type": "string"
+              }
+            ],
             "example": null
           },
           "message": {
             "type": "string",
-            "example": "Erro de validacao"
+            "example": "Erro ao processar requisicao."
           },
           "errors": {
-            "nullable": true
+            "$ref": "#/components/schemas/ErrorMeta"
           }
-        },
-        "required": ["data", "message", "errors"]
+        }
+      },
+      "ErrorMeta": {
+        "type": "object",
+        "properties": {
+          "traceId": {
+            "type": "string",
+            "nullable": true,
+            "example": "f25f63b8-2b89-4fc0-8a2e-7b2e8c7d6f53"
+          },
+          "details": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "additionalProperties": true
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "headers": {
+      "RequestIdHeader": {
+        "description": "Identificador unico da requisicao para rastreabilidade.",
+        "schema": {
+          "type": "string",
+          "example": "f25f63b8-2b89-4fc0-8a2e-7b2e8c7d6f53"
+        }
+      },
+      "ActorHeader": {
+        "description": "Ator identificado para a requisicao (header x-user/x-operator/x-username ou fallback).",
+        "schema": {
+          "type": "string",
+          "example": "PORTARIA"
+        }
+      }
+    },
+    "parameters": {
+      "RequestIdHeaderParam": {
+        "name": "x-request-id",
+        "in": "header",
+        "required": false,
+        "description": "Identificador unico da requisicao (enviado pelo cliente ou gerado pelo servidor).",
+        "schema": {
+          "type": "string",
+          "example": "f25f63b8-2b89-4fc0-8a2e-7b2e8c7d6f53"
+        }
+      },
+      "ActorHeaderParam": {
+        "name": "x-user",
+        "in": "header",
+        "required": false,
+        "description": "Identificacao do ator da operacao (ex.: PORTARIA).",
+        "schema": {
+          "type": "string",
+          "example": "PORTARIA"
+        }
       }
     }
   }
 }
-
