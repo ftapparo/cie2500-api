@@ -457,10 +457,7 @@ module.exports = {
         break;
 
       case COMANDO.COMANDO_ACK_COMANDOS_BLOQUEIOS_SAIDAS_INTERLIGACAO_CENTRAL:
-        //console.log(
-        "COMANDO_ACK_COMANDOS_BLOQUEIOS_SAIDAS_INTERLIGACAO_CENTRAL",
-          data
-        );
+        // console.log("COMANDO_ACK_COMANDOS_BLOQUEIOS_SAIDAS_INTERLIGACAO_CENTRAL", data);
         obj = { event: "udp_bloquear", data: { numero: data[3] } };
 
         break;
