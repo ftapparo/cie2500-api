@@ -1,0 +1,83 @@
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/css.css">
+    
+<script src="js/libs.js"></script>
+
+<script src="js/help.js"></script>
+
+<body md-no-ink ng-app="help" layout="column" layout-align="space-between stretch" ng-controller="rootController" ng-cloak>
+<header layout="row" layout-align="space-between center">
+    <div class="version">{{'global.tituloAjuda' | translate}}</div>
+    <div class="window-buttons">
+        <md-icon ng-click="windowMinimize()">remove</md-icon>
+        <md-icon ng-click="windowMaximize()">crop_16_9</md-icon>
+        <md-icon ng-click="windowClose()">close</md-icon>
+    </div>
+</header>
+<div layout="row" class="general-content">
+    <div class="navbar">
+        <md-toolbar class="md-accent">
+            <div class="md-toolbar-tools">
+                <div ng-click="back()" class="button-navbar {{historyIndex == 1 ? 'button-disabled' : ''}}">
+                    <md-button class="md-icon-button" style="margin-right: 15px">
+                        <md-icon>arrow_back</md-icon>
+                    </md-button>
+                    <span class="button-name">{{'global.voltar' | translate}}</span>
+                </div>
+                <div ng-click="forward()" class="button-navbar {{historyIndex == history.length ? 'button-disabled' : ''}}">
+                    <md-button class="md-icon-button">
+                        <md-icon>arrow_forward</md-icon>
+                    </md-button>
+                    <span class="button-name">{{'global.avancar' | translate}}</span>
+                </div>
+            </div>
+        </md-toolbar>
+        <div flex layout="column">
+            <div ui-sref-active="menu-selected" ui-sref="help.file" class="menu-item">
+                <div style="height: 100%" layout="column" layout-align="center center">
+                    <span flex>{{'global.menuArquivo' | translate}}</span>
+                </div>
+            </div>
+            <div ui-sref-active="menu-selected" ui-sref="help.loop" class="menu-item">
+                <div style="height: 100%" layout="column" layout-align="center center">
+                    <span flex>{{'global.menuLacos' | translate}}</span>
+                </div>
+            </div>
+            <div ui-sref-active="menu-selected" ui-sref="help.zone" class="menu-item">
+                <div style="height: 100%" layout="column" layout-align="center center">
+                    <span flex>{{'global.menuZonas' | translate}}</span>
+                </div>
+            </div>
+            <div ui-sref-active="menu-selected" ui-sref="help.rule" class="menu-item">
+                <div style="height: 100%" layout="column" layout-align="center center">
+                    <span flex>{{'global.menuRegras' | translate}}</span>
+                </div>
+            </div>
+            <div ui-sref-active="menu-selected" ui-sref="help.system" class="menu-item">
+                <div style="height: 100%" layout="column" layout-align="center center">
+                    <span flex>{{'global.menuSistema' | translate}}</span>
+                </div>
+            </div>
+            <div ui-sref-active="menu-selected" ui-sref="help.terms" class="menu-item">
+                <div style="height: 100%" layout="column" layout-align="center center">
+                    <span flex>{{'global.termos' | translate}}</span>
+                </div>
+            </div>
+            <div ui-sref-active="menu-selected" ui-sref="help.about" class="menu-item">
+                <div style="height: 100%" layout="column" layout-align="center center">
+                    <span flex>{{'global.sobre' | translate}}</span>
+                </div>
+            </div>
+            <div class="menu-item-last"></div>
+        </div>
+    </div>
+    <div ui-view flex layout="column" layout-align="space-between stretch">
+        <div ui-view="rootContent" flex layout="column" layout-align="space-between stretch">
+        </div>
+    </div>
+</div>
+</body>
+</html>

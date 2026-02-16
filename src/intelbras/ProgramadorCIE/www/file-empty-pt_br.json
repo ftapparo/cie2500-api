@@ -1,0 +1,190 @@
+{
+  "sistema": {
+    "firmware": "3.1.0",
+    "modelo_central": "CIE2500",
+    "lote": "L001/16",
+    "endereco": 0,
+    "local_instalacao": "Central de Incêndio",
+    "retardo": "10:00",
+    "operacao": "B",
+    "senha_2": "222222",
+    "senha_3": "333333",
+    "senha_4": "444444",
+    "alarme": {
+      "habilitada": false,
+      "laco": 0,
+      "endereco": 20,
+      "temporizador": "00:00"
+    },
+    "falha": {
+      "habilitada": true,
+      "laco": 0,
+      "endereco": 10,
+      "temporizador": "00:00"
+    },
+    "supervisao": {
+      "habilitada": false,
+      "laco": 0,
+      "endereco": 13,
+      "temporizador": "00:00"
+    },
+    "repetidoras": [0, 0, 0 ,0],
+    "interligacao": {
+      "centrais": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      "reiniciar_central": true,
+      "alarme_geral": true,
+      "sirene_brigada": true,
+      "silenciar_sirene": true,
+      "silenciar_central": true
+    },
+    "rede": {
+      "p2p": false,
+      "dhcp": true,
+      "ip": "192.168.0.10",
+      "mascara": "255.255.255.0",
+      "gateway": "192.168.0.1",
+      "ipv6": false
+    },
+    "repetidora": {},
+    "bateria_externa": false,
+    "pre_alarme": false,
+    "modbus": false,
+    "gw521": false
+  },
+  "zonas": {
+    "1": {
+      "id": 1,
+      "nome": "Zona Padrão",
+      "habilitado": true
+    }
+  },
+  "regras": {
+    "1": {
+      "nome": "Regra Padrão",
+      "habilitado": true,
+      "id": 1,
+      "tipo_regra": "sinalizacao",
+      "condicao_entrada": "unica",
+      "ativacao_saida": "imediata",
+      "brigada": false,
+      "alarme": true,
+      "temporizacao": "00:00",
+      "cancelavel": false,
+      "itens": [
+        {
+          "tipo": "zona",
+          "id": 1,
+          "modo": "entrada"
+        },{
+          "tipo": "zona",
+          "id": 1,
+          "modo": "saida"
+        }
+      ]
+    }
+  },
+  "lacos": [
+    {
+      "habilitado": true,
+      "dispositivos": {
+        "10" : {
+          "nome": "Saída local S1",
+          "laco": 0,
+          "endereco": 10,
+          "habilitado": true,
+          "zona": 0,
+          "tipo": 12,
+          "subtipo": 9,
+          "supervisao": false,
+          "saida_padrao": true,
+          "saida_local": "S1"
+        },
+        "20" : {
+          "nome": "Saída local S2",
+          "laco": 0,
+          "endereco": 20,
+          "habilitado": true,
+          "zona": 1,
+          "tipo": 12,
+          "subtipo": 7,
+          "supervisao": false,
+          "saida_padrao": false,
+          "saida_local": "S2"
+        },
+        "13" : {
+          "nome": "Saída local S3",
+          "laco": 0,
+          "endereco": 13,
+          "habilitado": true,
+          "zona": 1,
+          "tipo": 12,
+          "subtipo": 9,
+          "supervisao": false,
+          "saida_padrao": false,
+          "saida_local": "S3"
+        }
+      }
+    },
+    {
+      "habilitado": true,
+      "dispositivos": {}
+    },
+    {
+      "habilitado": true,
+      "dispositivos": {}
+    },
+    {
+      "habilitado": true,
+      "dispositivos": {}
+    },
+    {
+      "habilitado": true,
+      "dispositivos": {}
+    }
+  ],
+  "gateway": {
+    "integracao": "desabilitada",
+    "modbusTCP": {
+      "porta": 502,
+      "unitID": 1,
+      "timeout": "01:00"
+    },
+    "situador": {
+      "idioma": "0",
+      "autenticacao": "login",
+      "codigoConta": null,
+      "codigoZona": null,
+      "porta": 8080,
+      "host": "",
+      "usuario": "",
+      "senha": "",
+      "token": "",
+      "https": false
+    },
+    "webhook": {
+      "host": "",
+      "porta": 80,
+      "autenticacao": "hmac",
+      "chavePrivada": "",
+      "idioma": "0",
+      "nivelAutenticacao": "criptografia",
+      "heartbeat": "10:00",
+      "intervaloEventos": 500,
+      "codigoEquipamento": null
+    },
+    "rcptip": {
+      "host": "",
+      "porta": 9009,
+      "heartbeat": "05:00",
+      "intervaloEventos": 500,
+      "codigoConta": null
+    }
+  },
+  "bloqueios_locais": {
+    "sireneConvencional": false,
+    "releDeAlarme": false,
+    "releDeFalha": false,
+    "regraPadrao": false,
+    "laco": false
+  }
+}

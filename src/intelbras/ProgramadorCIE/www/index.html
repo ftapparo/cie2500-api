@@ -1,0 +1,93 @@
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/css.css">
+    
+<script src="js/libs.js"></script>
+
+<script src="js/app.js"></script>
+
+<body md-no-ink ng-app="app" layout="column" layout-align="space-between stretch" ng-controller="rootController" ng-cloak class="animated fadeIn">
+<header layout="row" layout-align="space-between center">
+    <div class="version">Programador CIE <span class="version-title">{{CONFIG.VERSION}}</span></div>
+    <div class="window-buttons">
+        <md-icon ng-click="windowMinimize()">remove</md-icon>
+        <md-icon ng-click="windowMaximize()">crop_16_9</md-icon>
+        <md-icon ng-click="windowClose()">close</md-icon>
+    </div>
+</header>
+<div layout="row" class="general-content" dw-loading="rootContent@app">
+    <div class="navbar">
+        <md-toolbar class="md-accent">
+        </md-toolbar>
+        <div flex layout="column">
+            <div ng-if="projectMode" ng-click="menuChange('app.interconnection', $event)" ui-sref-active="menu-selected" ui-sref="app.interconnection" class="menu-item">
+                <div style="height: 100%" layout="column" layout-align="center center">
+                    <md-icon hide-xs class="logo" md-svg-src="img/arquivo.svg" aria-label=""></md-icon>
+                    <span flex>{{'global.menuArquivo' | translate}}</span>
+                </div>
+            </div>
+            <div ng-click="menuChange('app.file', $event)" ui-sref-active="menu-selected" ui-sref="app.file" class="menu-item">
+                <div style="height: 100%" layout="column" layout-align="center center">
+                    <md-icon hide-xs class="logo" md-svg-src="img/arquivo.svg" aria-label=""></md-icon>
+                    <span flex>{{'global.menuArquivo' | translate}}</span>
+                </div>
+            </div>
+            <md-button ng-click="menuChange(item.state, $event)" md-no-ink fake-button ng-disabled="item.disabled()" ng-repeat="item in menu" ui-sref="{{item.state}}" ui-sref-active="menu-selected" class="menu-item" ng-class="{'menu-item-disabled' : item.disabled()}">
+                <div style="height: 100%" layout="column" layout-align="center center">
+                    <md-icon hide-xs class="logo" md-svg-src="{{item.icon}}" aria-label=""></md-icon>
+                    <span flex>{{item.name | translate}}</span>
+                </div>
+            </md-button>
+            <div class="menu-item-last" ng-class="{'menu-item-disabled' : (centralModel | isEmpty)}"></div>
+        </div>
+    </div>
+    <div ui-view flex layout="column" layout-align="space-between stretch">
+        <div ui-view="rootContent" flex layout="column" layout-align="space-between stretch">
+        </div>
+    </div>
+</div>
+<div class="footer" layout="row" layout-align="space-between none">
+    <div class="connection-mode-label">{{'global.modoConexao' | translate }}:</div>
+    <md-select ng-model="formConnectionMode.connectionMode" aria-label="{{'global.modoConexao' | translate }}" class="connection-mode-select">
+        <md-option value="usb">
+            USB
+        </md-option>
+        <md-option value="wifi">
+            Wi-Fi
+        </md-option>
+        <md-option value="network">
+            {{'global.rede' | translate }}
+        </md-option>
+    </md-select>
+    <md-button ng-if="formConnectionMode.connectionMode === 'network'" ng-click="searchCentralInNetwork($event)" class="md-raised button-action searchInNetwork-button">
+        {{'global.buscar' | translate }}
+        <md-icon aria-label="Buscar">search</md-icon>
+    </md-button>
+    <div flex class="cie-status">
+        <div ng-if="!isCIEBlocked && !isCIEConnected && cieUsbConnected && formConnectionMode.connectionMode === 'network'" class="cieUsbConnected" ng-click="showInfo($event)">
+            <md-icon>info</md-icon>
+        </div>
+        <div ng-if="isCIEBlocked" class="cieBlocked">
+            <md-icon>lock</md-icon>
+            <md-tooltip md-direction="top">{{'global.centralBloqueada' | translate }}</md-tooltip>
+        </div>
+        <md-icon class="cieDisconnected" ng-if="!isCIEConnected">check_box_outline_blank</md-icon>
+        <md-icon class="cieConnected" ng-if="isCIEConnected">check_box</md-icon><br>
+        <span><b>{{(centralAddressConnection && formConnectionMode.connectionMode === 'network' && isCIEConnected) ? (('global.central' | translate) + ' ' + centralAddressConnection) :  ('global.centralUpper' | translate)}}</b></span>
+        <span>{{isCIEConnected ? ('global.online' | translate) : ('global.offline' | translate)}}<b>{{connectedCentralModel.nome ? ' | ' + (connectedCentralModel.nome | translate) : ''}}</b></span>
+        <span ng-if="isCIEBlocked && formConnectionMode.connectionMode === 'network'"> - {{'global.aguardando' | translate }} <b>{{'global.central' | translate }} {{centralAddressConnection}}</b></span>
+        <span class="developerMode" ng-if="developerMode">MODO DESENVOLVEDOR</span>
+        <span ng-if="isSocketConnected != undefined && !isSocketConnected">*</span>
+        <md-button ng-if="isCIEConnected && !developerMode" ng-disabled="btnDisconnectDisabled" ng-click="centralBlock()" class="md-warn disconnect-button">
+            {{'global.desconectar' | translate }}
+        </md-button>
+    </div>
+    <div flex class="file-status">
+        <div ng-if="projectMode"><span>{{file ? ('global.arquivo' | translate) + ': ' + file : ('global.arquivoNaoSalvo' | translate)}}</span><span><b>  |  {{'global.projetoInterligacao' | translate }}</b></span><span ng-if="selectedCentralAddress"> - {{'global.centralUpper' | translate }} {{selectedCentralAddress}}</span></div>
+        <div ng-if="!projectMode"><span ng-if="!(centralModel | isEmpty)">{{file ? ('global.arquivo' | translate) + ': ' + file : ('global.arquivoNaoSalvo' | translate)}}</span><span><b>{{ centralModel.nome ? ' | ' + (centralModel.nome | translate) : ''}}</b></span></div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,67 @@
+{
+  "name": "ProgramadorCIE",
+  "version": "4.0.11",
+  "description": "Programador de centrais de incendio CIE",
+  "scripts": {
+    "dev": "gulp",
+    "format": "prettier -w www/js/**/*.{html,js} server/**/*.js",
+    "chromium-args": "--enable-logging --v=1",
+    "build": "npm run format && FOR /F %i IN ('node upgrade-version.js') DO gulp build --versao=%i",
+    "build-patch": "npm run format && node upgrade-version.js --patch && FOR /F %i IN ('node upgrade-version.js') DO gulp build --versao=%i",
+    "build-minor": "npm run format && node upgrade-version.js --minor && FOR /F %i IN ('node upgrade-version.js') DO gulp build --versao=%i",
+    "build-major": "npm run format && node upgrade-version.js --major && FOR /F %i IN ('node upgrade-version.js') DO gulp build --versao=%i",
+    "build-test": "gulp build --versao"
+  },
+  "dependencies": {
+    "bower": "^1.7.9",
+    "fs": "0.0.2",
+    "gulp": "^3.5.6",
+    "gulp-angular-templatecache": "^2.0.0",
+    "gulp-bump": "^3.1.1",
+    "gulp-clean": "^0.4.0",
+    "gulp-clean-css": "^4.0.0",
+    "gulp-concat": "^2.2.0",
+    "gulp-inno": "0.3.0",
+    "gulp-live-server": "0.0.31",
+    "gulp-minify-css": "^1.2.4",
+    "gulp-minify-html": "^1.0.6",
+    "gulp-open": "^3.0.1",
+    "gulp-rename": "^1.2.0",
+    "gulp-sass": "^4.0.2",
+    "gulp-sync": "^0.1.4",
+    "gulp-uglify-es": "^3.0.0",
+    "gulp-useref": "^3.1.0",
+    "node-hid": "^2.2.0",
+    "node-html-parser": "^1.2.18",
+    "nw-builder": "^2.2.5",
+    "rcedit": "^1.1.1",
+    "run-sequence": "^2.2.1",
+    "yargs": "^12.0.5"
+  },
+  "engineStrict": true,
+  "engines": {
+    "node": "10.13.0"
+  },
+  "main": "www/index.html",
+  "node-main": "main.js",
+  "window": {
+    "title": "Programador CIE",
+    "icon": "www/img/icon.png",
+    "toolbar": false,
+    "frame": false,
+    "position": "center",
+    "width": 1280,
+    "height": 720,
+    "min_width": 800,
+    "min_height": 600
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.5.0",
+    "eslint": "^9.5.0",
+    "globals": "^15.6.0",
+    "gulp-prettier": "^4.0.0",
+    "jsdoc": "^4.0.4",
+    "lodash": "^4.17.15",
+    "prettier": "^2.8.8"
+  }
+}
