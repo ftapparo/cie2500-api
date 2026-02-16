@@ -3,6 +3,8 @@ import type { CieClient } from '../core/cie-client';
 export type CommandAction =
   | 'silence'
   | 'release'
+  | 'release-bip'
+  | 'release-siren'
   | 'restart'
   | 'brigade-siren'
   | 'alarm-general'
@@ -38,10 +40,13 @@ export class CieCommandService {
   constructor(client: CieClient) {
     this.client = client;
     const silenceDefault = this.readMapping('CIE_CMD_SILENCE_BUTTON', 'CIE_CMD_SILENCE_PARAM');
+    const releaseDefault = this.readMapping('CIE_CMD_RELEASE_BUTTON', 'CIE_CMD_RELEASE_PARAM');
     const restartDefault = this.readMapping('CIE_CMD_RESTART_BUTTON', 'CIE_CMD_RESTART_PARAM');
     this.mapping = {
       silence: silenceDefault,
-      release: this.readMapping('CIE_CMD_RELEASE_BUTTON', 'CIE_CMD_RELEASE_PARAM'),
+      release: releaseDefault,
+      'release-bip': this.readMapping('CIE_CMD_RELEASE_BIP_BUTTON', 'CIE_CMD_RELEASE_BIP_PARAM') ?? releaseDefault,
+      'release-siren': this.readMapping('CIE_CMD_RELEASE_SIREN_BUTTON', 'CIE_CMD_RELEASE_SIREN_PARAM') ?? releaseDefault,
       restart: restartDefault,
       'brigade-siren': this.readMapping('CIE_CMD_BRIGADE_SIREN_BUTTON', 'CIE_CMD_BRIGADE_SIREN_PARAM'),
       'alarm-general': this.readMapping('CIE_CMD_ALARM_GENERAL_BUTTON', 'CIE_CMD_ALARM_GENERAL_PARAM'),

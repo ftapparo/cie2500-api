@@ -32,6 +32,12 @@ export default function cieRoutes(cieInstance: CieManager) {
   router.post('/cie/commands/release', (req, res) =>
     executeCommand(req, res, 'release', commandService, stateService)
   );
+  router.post('/cie/commands/release-bip', (req, res) =>
+    executeCommand(req, res, 'release-bip', commandService, stateService)
+  );
+  router.post('/cie/commands/release-siren', (req, res) =>
+    executeCommand(req, res, 'release-siren', commandService, stateService)
+  );
   router.post('/cie/commands/restart', (req, res) =>
     executeCommand(req, res, 'restart', commandService, stateService)
   );
