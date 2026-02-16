@@ -142,6 +142,12 @@ export class CieLogService {
     return list.slice(0, Math.max(1, limit));
   }
 
+  latestReceivedByType(type: CieLogType, limit = 20): NormalizedCieLog[] {
+    const list = this.logs.filter((l) => l.type === type);
+    list.sort((a, b) => b.createdAt - a.createdAt);
+    return list.slice(0, Math.max(1, limit));
+  }
+
   list(options: ListOptions): { items: NormalizedCieLog[]; nextCursor: string | null } {
     const safeLimit = Math.min(200, Math.max(1, options.limit));
     const offset = Math.max(0, Number(options.cursor || 0) || 0);

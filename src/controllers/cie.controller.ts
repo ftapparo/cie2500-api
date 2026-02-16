@@ -3,6 +3,7 @@ import type { CieStateService } from '../services/cie-state.service';
 import type { CieLogService } from '../services/cie-log.service';
 import type { CieCommandService, CommandAction } from '../services/cie-command.service';
 import type { CieLogType } from '../types/logs';
+import { trimNulls } from '../utils';
 
 const LOG_TYPES: CieLogType[] = ['alarme', 'falha', 'supervisao', 'operacao', 'bloqueio'];
 
@@ -30,7 +31,7 @@ export function getCieStatus(_req: Request, res: Response, stateService: CieStat
 
 export function getPanelStatus(_req: Request, res: Response, stateService: CieStateService, logService: CieLogService) {
   const snapshot = stateService.getSnapshot();
-  const latestFailureEvent = logService.latestByType('falha', 1)[0] ?? null;
+  const latestFailureEvent = logService.latestReceivedByType('falha', 1)[0] ?? null;
 
   return res.ok({
     online: snapshot.connected,
@@ -42,7 +43,7 @@ export function getPanelStatus(_req: Request, res: Response, stateService: CieSt
     central: {
       ip: process.env.CIE_IP ?? null,
       endereco: Number(process.env.CIE_ENDERECO ?? 0),
-      nome: snapshot.nomeModelo?.nome ?? null,
+      nome: typeof snapshot.nomeModelo?.nome === 'string' ? trimNulls(snapshot.nomeModelo.nome) : null,
       modelo: snapshot.nomeModelo?.modelo ?? null,
       mac: snapshot.mac?.mac ?? null,
     },
