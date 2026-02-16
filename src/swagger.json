@@ -54,9 +54,6 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/ActorHeaderParam"
-          },
-          {
-            "$ref": "#/components/parameters/RequestIdHeaderParam"
           }
         ]
       }
@@ -90,9 +87,6 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/ActorHeaderParam"
-          },
-          {
-            "$ref": "#/components/parameters/RequestIdHeaderParam"
           }
         ]
       }
@@ -126,9 +120,6 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/ActorHeaderParam"
-          },
-          {
-            "$ref": "#/components/parameters/RequestIdHeaderParam"
           }
         ]
       }
@@ -162,9 +153,6 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/ActorHeaderParam"
-          },
-          {
-            "$ref": "#/components/parameters/RequestIdHeaderParam"
           }
         ]
       }
@@ -178,9 +166,6 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/ActorHeaderParam"
-          },
-          {
-            "$ref": "#/components/parameters/RequestIdHeaderParam"
           },
           {
             "in": "query",
@@ -303,9 +288,6 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/ActorHeaderParam"
-          },
-          {
-            "$ref": "#/components/parameters/RequestIdHeaderParam"
           }
         ]
       }
@@ -357,9 +339,6 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/ActorHeaderParam"
-          },
-          {
-            "$ref": "#/components/parameters/RequestIdHeaderParam"
           }
         ]
       }
@@ -411,9 +390,6 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/ActorHeaderParam"
-          },
-          {
-            "$ref": "#/components/parameters/RequestIdHeaderParam"
           }
         ]
       }
@@ -465,9 +441,6 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/ActorHeaderParam"
-          },
-          {
-            "$ref": "#/components/parameters/RequestIdHeaderParam"
           }
         ]
       }
@@ -589,7 +562,8 @@
         "schema": {
           "type": "string",
           "example": "PORTARIA"
-        }
+        },
+        "example": "SWAGGER"
       }
     }
   }

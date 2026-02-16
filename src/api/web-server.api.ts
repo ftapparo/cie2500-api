@@ -10,6 +10,17 @@ import { responseHandler } from '../middleware/response-handler';
 import { CieManager } from '../core/cie-manager';
 import { requestContextMiddleware } from '../middleware/request-context';
 
+const swaggerUiOptions = {
+    swaggerOptions: {
+        requestInterceptor: (request: any) => {
+            request.headers = request.headers || {};
+            request.headers['x-user'] = 'SWAGGER';
+            request.headers['x-request-id'] = `swagger-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+            return request;
+        }
+    }
+};
+
 
 export async function StartWebServer(cieInstance: CieManager): Promise<void> {
     const app = express();
@@ -51,7 +62,7 @@ export async function StartWebServer(cieInstance: CieManager): Promise<void> {
     /**
      * Rota para servir a documentação Swagger UI.
      */
-    app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+    app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerDocument, swaggerUiOptions));
 
     /**
      * Endpoint para servir o arquivo swagger.json (OpenAPI spec).
