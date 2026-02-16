@@ -70,16 +70,92 @@ export class CieCommandService {
     return this.identifier;
   }
 
-  execute(action: CommandAction) {
+  private isNotConfiguredResponse(response: any): boolean {
+    return String(response?.resposta || '') === 'StatusBotaoNaoConfigurado';
+  }
+
+  private async executeCustomMapping(mapping: CommandMapping): Promise<any> {
+    const identifier = this.nextIdentifier();
+    return this.client.sendButtonCommand(mapping.button, mapping.parameter, identifier);
+  }
+
+  private executeMapped(action: CommandAction) {
     const mapping = this.mapping[action];
     if (!mapping) {
-      const err = new Error(`Comando '${action}' não mapeado por variável de ambiente.`);
+      const err = new Error(`Comando '${action}' nao mapeado por variavel de ambiente.`);
       (err as any).status = 409;
       throw err;
     }
 
     const identifier = this.nextIdentifier();
     return this.client.sendButtonCommand(mapping.button, mapping.parameter, identifier);
+  }
+
+  async execute(action: CommandAction) {
+    const primary = await this.executeMapped(action);
+
+    // Algumas centrais nao possuem comando dedicado de release para bip/sirene.
+    // Fallback para comportamento do software original:
+    // mesmo botao com parametro invertido (toggle), depois demais alternativas.
+    if (action === 'release-bip' && this.isNotConfiguredResponse(primary)) {
+      const silenceBip = this.mapping['silence-bip'];
+      if (silenceBip) {
+        try {
+          const inverseToggle = await this.executeCustomMapping({
+            button: silenceBip.button,
+            parameter: silenceBip.parameter === 0 ? 1 : 0,
+          });
+          if (!this.isNotConfiguredResponse(inverseToggle)) return inverseToggle;
+        } catch {
+          // tenta proximo fallback
+        }
+      }
+
+      try {
+        const release = await this.executeMapped('release');
+        if (!this.isNotConfiguredResponse(release)) return release;
+      } catch {
+        // tenta proximo fallback
+      }
+
+      try {
+        const toggle = await this.executeMapped('silence-bip');
+        if (!this.isNotConfiguredResponse(toggle)) return toggle;
+      } catch {
+        // mantem resposta primaria
+      }
+    }
+
+    if (action === 'release-siren' && this.isNotConfiguredResponse(primary)) {
+      const silenceSiren = this.mapping['silence-siren'];
+      if (silenceSiren) {
+        try {
+          const inverseToggle = await this.executeCustomMapping({
+            button: silenceSiren.button,
+            parameter: silenceSiren.parameter === 0 ? 1 : 0,
+          });
+          if (!this.isNotConfiguredResponse(inverseToggle)) return inverseToggle;
+        } catch {
+          // tenta proximo fallback
+        }
+      }
+
+      try {
+        const release = await this.executeMapped('release');
+        if (!this.isNotConfiguredResponse(release)) return release;
+      } catch {
+        // tenta proximo fallback
+      }
+
+      try {
+        const toggle = await this.executeMapped('silence-siren');
+        if (!this.isNotConfiguredResponse(toggle)) return toggle;
+      } catch {
+        // mantem resposta primaria
+      }
+    }
+
+    return primary;
   }
 
   executeBlockCommand(payload: BlockCommandPayload) {
