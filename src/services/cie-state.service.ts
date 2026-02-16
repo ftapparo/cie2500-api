@@ -34,6 +34,7 @@ export class CieStateService extends EventEmitter {
   private reconnectTimer: NodeJS.Timeout | null = null;
   private restartRecoveryTimer: NodeJS.Timeout | null = null;
   private restartRecoveryInterval: NodeJS.Timeout | null = null;
+  private restartHardTimeoutTimer: NodeJS.Timeout | null = null;
   private warmupPromise: Promise<void> | null = null;
   private backfillInFlight = 0;
   private ensureByType: Partial<Record<CieLogType, Promise<void>>> = {};
@@ -85,6 +86,7 @@ export class CieStateService extends EventEmitter {
     this.snapshot.reconnecting = true;
     this.snapshot.reconnectAttempt = 0;
     this.setConnected(false);
+    this.stopPolling();
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
@@ -96,11 +98,25 @@ export class CieStateService extends EventEmitter {
     if (this.restartRecoveryTimer) {
       clearTimeout(this.restartRecoveryTimer);
     }
+    if (this.restartHardTimeoutTimer) {
+      clearTimeout(this.restartHardTimeoutTimer);
+      this.restartHardTimeoutTimer = null;
+    }
     // Aguarda a queda/subida da central e tenta reconectar continuamente por 1 minuto.
     this.restartRecoveryTimer = setTimeout(() => {
       this.restartRecoveryTimer = null;
       this.startRestartRecoveryLoop();
     }, 8000);
+    this.restartHardTimeoutTimer = setTimeout(() => {
+      this.restartHardTimeoutTimer = null;
+      if (!this.snapshot.connected) {
+        this.snapshot.lastError = 'Falha ao reconectar apos reinicio da central (watchdog de 1 minuto).';
+        this.snapshot.reconnecting = false;
+        this.snapshot.restartingUntil = null;
+        this.emit('cie.status.updated', this.getSnapshot());
+        setTimeout(() => process.exit(1), 100);
+      }
+    }, safeDuration + 2000);
     this.emit('cie.status.updated', this.getSnapshot());
   }
 
@@ -141,9 +157,18 @@ export class CieStateService extends EventEmitter {
           this.triggerReconnect();
         }
       } else {
+        if (this.restartRecoveryInterval) {
+          clearInterval(this.restartRecoveryInterval);
+          this.restartRecoveryInterval = null;
+        }
+        if (this.restartHardTimeoutTimer) {
+          clearTimeout(this.restartHardTimeoutTimer);
+          this.restartHardTimeoutTimer = null;
+        }
         this.snapshot.lastError = null;
         this.snapshot.reconnecting = false;
         this.snapshot.reconnectAttempt = 0;
+        this.startPolling();
       }
     });
 
@@ -196,6 +221,9 @@ export class CieStateService extends EventEmitter {
   }
 
   async refreshNow() {
+    if (this.isRestarting()) {
+      return;
+    }
     try {
       const [status, dataHora] = await Promise.all([
         this.client.status(),
@@ -243,6 +271,15 @@ export class CieStateService extends EventEmitter {
       this.snapshot.reconnecting = false;
       this.snapshot.reconnectAttempt = 0;
       this.snapshot.restartingUntil = null;
+      if (this.restartRecoveryInterval) {
+        clearInterval(this.restartRecoveryInterval);
+        this.restartRecoveryInterval = null;
+      }
+      if (this.restartHardTimeoutTimer) {
+        clearTimeout(this.restartHardTimeoutTimer);
+        this.restartHardTimeoutTimer = null;
+      }
+      this.startPolling();
       this.previousCounters = getCounters(initial.status);
       this.setConnected(true);
       this.emit('cie.status.updated', this.getSnapshot());
@@ -277,6 +314,11 @@ export class CieStateService extends EventEmitter {
           clearInterval(this.restartRecoveryInterval);
           this.restartRecoveryInterval = null;
         }
+        if (this.restartHardTimeoutTimer) {
+          clearTimeout(this.restartHardTimeoutTimer);
+          this.restartHardTimeoutTimer = null;
+        }
+        this.startPolling();
         return;
       }
 
@@ -464,6 +506,10 @@ export class CieStateService extends EventEmitter {
     if (this.restartRecoveryTimer) {
       clearTimeout(this.restartRecoveryTimer);
       this.restartRecoveryTimer = null;
+    }
+    if (this.restartHardTimeoutTimer) {
+      clearTimeout(this.restartHardTimeoutTimer);
+      this.restartHardTimeoutTimer = null;
     }
     await this.client.shutdown();
     this.snapshot.restartingUntil = null;

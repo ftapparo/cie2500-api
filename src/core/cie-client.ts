@@ -43,6 +43,7 @@ export class CieClient {
   }
 
   async reconnect() {
+    this.queue.reset();
     return this.queue.run(async () => {
       try {
         await this.cie.stopCommunication();
