@@ -51,7 +51,15 @@ export class CieClient {
         // ignore
       }
       this.connected = false;
-      await this.connect();
+      try {
+        await this.cie.discover(true);
+      } catch {
+        // best effort only
+      }
+
+      const token = await this.cie.authenticate(this.opts.ip, this.opts.password, this.opts.endereco);
+      await this.cie.startCommunication(this.opts.ip, this.opts.endereco, token);
+      this.connected = true;
     });
   }
 

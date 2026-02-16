@@ -1,4 +1,5 @@
 import { EventEmitter } from 'node:events';
+import { spawn } from 'node:child_process';
 import type { CieClient } from '../core/cie-client';
 import type { CieLogService } from './cie-log.service';
 import type { CieHistoricLogType, CieLogType } from '../types/logs';
@@ -86,12 +87,36 @@ export class CieStateService extends EventEmitter {
     } catch {
       // no-op
     }
+    const pid = process.pid;
     setTimeout(() => {
-      try {
-        process.kill(process.pid, 'SIGKILL');
-      } catch {
-        process.exit(1);
+      if (process.platform === 'win32') {
+        try {
+          const killer = spawn('taskkill', ['/PID', String(pid), '/T', '/F'], {
+            detached: true,
+            stdio: 'ignore',
+          });
+          killer.unref();
+        } catch {
+          // fallback abaixo
+        }
+        setTimeout(() => {
+          process.exit(1);
+        }, 300);
+        return;
       }
+
+      try {
+        process.kill(pid, 'SIGKILL');
+      } catch {
+        try {
+          process.kill(pid, 'SIGTERM');
+        } catch {
+          process.exit(1);
+        }
+      }
+      setTimeout(() => {
+        process.exit(1);
+      }, 300);
     }, 100);
   }
 
@@ -101,6 +126,7 @@ export class CieStateService extends EventEmitter {
     this.snapshot.lastError = null;
     this.snapshot.reconnecting = true;
     this.snapshot.reconnectAttempt = 0;
+    this.stopPolling();
     this.setConnected(false);
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
@@ -117,11 +143,10 @@ export class CieStateService extends EventEmitter {
       clearTimeout(this.restartHardTimeoutTimer);
       this.restartHardTimeoutTimer = null;
     }
-    // Aguarda a queda/subida da central e tenta reconectar continuamente por 1 minuto.
-    this.restartRecoveryTimer = setTimeout(() => {
-      this.restartRecoveryTimer = null;
-      this.startRestartRecoveryLoop();
-    }, 8000);
+    // O comando ja foi enviado com sucesso.
+    // Agora derruba sessao local imediatamente e inicia loop agressivo de reconexao.
+    void this.forceRestartRecoveryNow();
+
     this.restartHardTimeoutTimer = setTimeout(() => {
       this.restartHardTimeoutTimer = null;
       if (!this.snapshot.connected) {
@@ -133,6 +158,17 @@ export class CieStateService extends EventEmitter {
       }
     }, safeDuration + 2000);
     this.emit('cie.status.updated', this.getSnapshot());
+  }
+
+  private async forceRestartRecoveryNow() {
+    try {
+      await this.client.disconnect();
+    } catch {
+      // segue para tentativa de reconexao mesmo com erro no fechamento
+    }
+
+    if (!this.isRestarting()) return;
+    this.startRestartRecoveryLoop();
   }
 
   isRestarting(): boolean {
@@ -341,6 +377,10 @@ export class CieStateService extends EventEmitter {
     if (this.restartRecoveryInterval) return;
 
     const deadline = Number(this.snapshot.restartingUntil || 0);
+    void this.reconnectNow().catch(() => {
+      // ciclo do intervalo continua tentando
+    });
+
     this.restartRecoveryInterval = setInterval(() => {
       if (this.snapshot.connected) {
         if (this.restartRecoveryInterval) {
@@ -371,7 +411,7 @@ export class CieStateService extends EventEmitter {
       void this.reconnectNow().catch(() => {
         // proxima tentativa ocorre automaticamente no proximo ciclo do intervalo
       });
-    }, 5000);
+    }, 1000);
   }
 
   private triggerReconnect() {
