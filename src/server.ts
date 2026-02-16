@@ -29,8 +29,8 @@ async function startService(): Promise<void> {
       webserverPort: port,
     });
 
+    // Inicia o servidor web e a conexão com a CIE em paralelo
     await StartWebServer(cieInstance);
-    console.log(`[Server] WebServer ativo na porta ${port}`);
 
     void cieInstance.connectToCie()
       .then(() => {
