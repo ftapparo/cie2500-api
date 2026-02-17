@@ -1,6 +1,17 @@
 import { randomUUID } from 'crypto';
 
+type EventLog = {
+  loop?: number | null;
+  address?: number | null;
+  zoneName?: string | null;
+  deviceName?: string | null;
+  deviceTypeLabel?: string | null;
+  occurredAt?: string | null;
+};
+
 type FireAlarmEventPayload = {
+  source?: string;
+  triggeredAt?: string;
   isTriggered?: boolean;
   counters?: {
     alarme?: number;
@@ -30,6 +41,26 @@ const toNumber = (value: string | undefined, fallback: number): number => {
   const parsed = Number(value || fallback);
   if (!Number.isFinite(parsed) || parsed < 0) return fallback;
   return Math.trunc(parsed);
+};
+
+const normalizeLabel = (value: unknown, fallback = 'Não identificado'): string => {
+  const text = typeof value === 'string' ? value.trim() : '';
+  return text || fallback;
+};
+
+const buildAddress = (log?: EventLog): string => {
+  const loopNumber = typeof log?.loop === 'number' ? log.loop : null;
+  const addressNumber = typeof log?.address === 'number' ? log.address : null;
+  const loop = loopNumber !== null && Number.isFinite(loopNumber) ? `L${loopNumber}` : 'L-';
+  const address = addressNumber !== null && Number.isFinite(addressNumber) ? `D${addressNumber}` : 'D-';
+  return `${loop}${address}`;
+};
+
+const formatDateTime = (value: unknown): string => {
+  if (typeof value !== 'string' || !value.trim()) return 'Data/Hora indisponível';
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return 'Data/Hora indisponível';
+  return `${parsed.toLocaleDateString('pt-BR')} ${parsed.toLocaleTimeString('pt-BR', { hour12: false })}`;
 };
 
 export class PushRelayService {
@@ -71,20 +102,12 @@ export class PushRelayService {
     return false;
   }
 
-  async sendFireAlarm(data: FireAlarmEventPayload): Promise<void> {
-    if (!this.isEnabled()) return;
-
-    if (this.shouldSkipByCooldown('fire-alarm', this.lastFireAlarmSentAt, this.fireAlarmCooldownMs)) return;
-
-    const requestId = randomUUID();
-    const endpoint = `${this.baseUrl}/v2/api/push/events/fire-alarm`;
-    const body = {
-      source: 'CIE2500',
-      triggeredAt: new Date().toISOString(),
-      counters: data?.counters || {},
-      latestAlarmLogs: Array.isArray(data?.latestAlarmLogs) ? data.latestAlarmLogs : [],
-    };
-
+  private async postGenericPush(
+    requestId: string,
+    payload: Record<string, unknown>,
+    kind: 'fire-alarm' | 'failure-alarm',
+  ): Promise<void> {
+    const endpoint = `${this.baseUrl}/v2/api/push/send`;
     let lastError: unknown = null;
 
     for (let attempt = 1; attempt <= this.retries; attempt += 1) {
@@ -100,7 +123,7 @@ export class PushRelayService {
             'x-request-id': requestId,
             'x-user': 'CIE',
           },
-          body: JSON.stringify(body),
+          body: JSON.stringify(payload),
           signal: controller.signal,
         });
 
@@ -111,20 +134,19 @@ export class PushRelayService {
           throw new Error(`HTTP ${response.status} ${response.statusText} ${responseText}`.trim());
         }
 
-        console.log('[PushRelayService] fire-alarm enviado', {
+        console.log(`[PushRelayService] ${kind} enviado`, {
           requestId,
           attempt,
           elapsedMs: Date.now() - startedAt,
           endpoint,
         });
-        this.lastFireAlarmSentAt = Date.now();
         return;
       } catch (error) {
         clearTimeout(timeout);
         lastError = error;
 
         const willRetry = attempt < this.retries;
-        console.warn('[PushRelayService] falha ao enviar fire-alarm', {
+        console.warn(`[PushRelayService] falha ao enviar ${kind}`, {
           requestId,
           attempt,
           retries: this.retries,
@@ -140,7 +162,43 @@ export class PushRelayService {
       }
     }
 
-    throw (lastError instanceof Error ? lastError : new Error('Falha ao enviar fire-alarm para API principal.'));
+    throw (lastError instanceof Error ? lastError : new Error(`Falha ao enviar ${kind} para API principal.`));
+  }
+
+  async sendFireAlarm(data: FireAlarmEventPayload): Promise<void> {
+    if (!this.isEnabled()) return;
+
+    if (this.shouldSkipByCooldown('fire-alarm', this.lastFireAlarmSentAt, this.fireAlarmCooldownMs)) return;
+
+    const requestId = randomUUID();
+    const latestLog = Array.isArray(data?.latestAlarmLogs) && data.latestAlarmLogs.length > 0
+      ? data.latestAlarmLogs[0] as EventLog
+      : undefined;
+    const alarmCount = Number(data?.counters?.alarme || 0);
+    const alarmTitle = alarmCount > 0 ? 'SISTEMA EM ALARME' : 'ALARME DE INCENDIO';
+
+    const body = [
+      `${buildAddress(latestLog)} - ${normalizeLabel(latestLog?.zoneName || latestLog?.deviceName)}`,
+      `Disp. em Alarme | Tipo: ${normalizeLabel(latestLog?.deviceTypeLabel, 'Não informado')}`,
+      `Zona: ${normalizeLabel(latestLog?.zoneName)} | Dispositivo: ${normalizeLabel(latestLog?.deviceName)}`,
+      `Laço/Endereço: ${buildAddress(latestLog)} | Data/Hora: ${formatDateTime(latestLog?.occurredAt)}`,
+    ].join('\n');
+
+    await this.postGenericPush(requestId, {
+      title: alarmTitle,
+      body,
+      tag: 'fire-alarm',
+      requireInteraction: true,
+      data: {
+        url: '/dashboard/incendio',
+        source: data?.source || 'CIE2500',
+        triggeredAt: data?.triggeredAt || new Date().toISOString(),
+        counters: data?.counters || {},
+        type: 'fire-alarm',
+      },
+    }, 'fire-alarm');
+
+    this.lastFireAlarmSentAt = Date.now();
   }
 
   async sendFailureAlarm(data: FailureAlarmEventPayload): Promise<void> {
@@ -156,13 +214,22 @@ export class PushRelayService {
     if (this.shouldSkipByCooldown('failure-alarm', this.lastFailureAlarmSentAt, this.failureAlarmCooldownMs)) return;
 
     const requestId = randomUUID();
-    const endpoint = `${this.baseUrl}/v2/api/push/send`;
+    const latestLog = Array.isArray(data?.latestFailureLogs) && data.latestFailureLogs.length > 0
+      ? data.latestFailureLogs[0] as EventLog
+      : undefined;
     const failureCount = Number(data?.counters?.falha || 0);
-    const body = {
-      title: 'Falha na Central de Incendio',
-      body: failureCount > 0
-        ? `Foram detectadas ${failureCount} falha(s) ativa(s) na central.`
-        : 'Foi detectada uma falha na central de incendio.',
+    const failureTitle = failureCount > 0 ? 'SISTEMA EM FALHA' : 'FALHA NA CENTRAL';
+
+    const body = [
+      `${buildAddress(latestLog)} - ${normalizeLabel(latestLog?.zoneName || latestLog?.deviceName)}`,
+      `Disp. em Falha | Tipo: ${normalizeLabel(latestLog?.deviceTypeLabel, 'Não informado')}`,
+      `Zona: ${normalizeLabel(latestLog?.zoneName)} | Dispositivo: ${normalizeLabel(latestLog?.deviceName)}`,
+      `Laço/Endereço: ${buildAddress(latestLog)} | Data/Hora: ${formatDateTime(latestLog?.occurredAt)}`,
+    ].join('\n');
+
+    await this.postGenericPush(requestId, {
+      title: failureTitle,
+      body,
       tag: 'failure-alarm',
       requireInteraction: true,
       data: {
@@ -172,63 +239,8 @@ export class PushRelayService {
         counters: data?.counters || {},
         type: 'failure-alarm',
       },
-    };
+    }, 'failure-alarm');
 
-    let lastError: unknown = null;
-
-    for (let attempt = 1; attempt <= this.retries; attempt += 1) {
-      const startedAt = Date.now();
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
-
-      try {
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-request-id': requestId,
-            'x-user': 'CIE',
-          },
-          body: JSON.stringify(body),
-          signal: controller.signal,
-        });
-
-        clearTimeout(timeout);
-
-        if (!response.ok) {
-          const responseText = await response.text().catch(() => '');
-          throw new Error(`HTTP ${response.status} ${response.statusText} ${responseText}`.trim());
-        }
-
-        console.log('[PushRelayService] failure-alarm enviado', {
-          requestId,
-          attempt,
-          elapsedMs: Date.now() - startedAt,
-          endpoint,
-        });
-        this.lastFailureAlarmSentAt = Date.now();
-        return;
-      } catch (error) {
-        clearTimeout(timeout);
-        lastError = error;
-
-        const willRetry = attempt < this.retries;
-        console.warn('[PushRelayService] falha ao enviar failure-alarm', {
-          requestId,
-          attempt,
-          retries: this.retries,
-          willRetry,
-          error: error instanceof Error ? error.message : error,
-          endpoint,
-        });
-
-        if (willRetry) {
-          const backoffMs = Math.min(1000 * attempt, 3000);
-          await new Promise((resolve) => setTimeout(resolve, backoffMs));
-        }
-      }
-    }
-
-    throw (lastError instanceof Error ? lastError : new Error('Falha ao enviar failure-alarm para API principal.'));
+    this.lastFailureAlarmSentAt = Date.now();
   }
 }

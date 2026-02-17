@@ -3,7 +3,7 @@
   "info": {
     "title": "CIE2500 Service API",
     "version": "1.0.0",
-    "description": "Microservico REST + WebSocket para central CIE2500. Realtime via WebSocket em /v1/ws."
+    "description": "Microservico REST + WebSocket para central CIE2500. Realtime via WebSocket em /v1/ws (eventos: connection.status.changed, cie.status.updated, cie.alarm.triggered, cie.failure.triggered, cie.log.received)."
   },
   "servers": [
     {
