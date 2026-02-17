@@ -171,6 +171,30 @@ export class CieCommandService {
     }
   }
 
+  private async waitForLedTarget(
+    ledKey: 'centralSilenciada' | 'sireneSilenciada',
+    targetValue: boolean,
+    attempts = 8,
+    delayMs = 300
+  ): Promise<{ matched: boolean; lastState: boolean | null; deterministic: boolean }> {
+    let lastState: boolean | null = null;
+    let deterministic = false;
+
+    for (let i = 0; i < attempts; i += 1) {
+      const state = await this.readLedState(ledKey);
+      lastState = state;
+      if (state !== null) deterministic = true;
+      if (state === targetValue) {
+        return { matched: true, lastState: state, deterministic };
+      }
+      if (i < attempts - 1) {
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
+
+    return { matched: false, lastState, deterministic };
+  }
+
   private async executeUntilLedTarget(
     ledKey: 'centralSilenciada' | 'sireneSilenciada',
     targetValue: boolean,
@@ -190,10 +214,11 @@ export class CieCommandService {
           continue;
         }
 
-        const ledState = await this.readLedState(ledKey);
-        lastLedState = ledState;
-        if (ledState !== null) hadDeterministicLedRead = true;
-        if (ledState === targetValue || ledState === null) {
+        // A central pode demorar alguns centenas de ms para refletir o novo estado.
+        const settled = await this.waitForLedTarget(ledKey, targetValue);
+        lastLedState = settled.lastState;
+        if (settled.deterministic) hadDeterministicLedRead = true;
+        if (settled.matched) {
           return response;
         }
       } catch (error) {

@@ -945,11 +945,19 @@
             }
           },
           "409": {
-            "description": "Comando rejeitado pela central",
+            "description": "Comando executado sem alterar o estado da central (ex.: bip permanece silenciado)",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "example": {
+                  "data": null,
+                  "message": "Comando enviado, mas a central manteve o estado anterior.",
+                  "errors": {
+                    "traceId": "swagger-example",
+                    "details": "release-bip sem mudanca de LED centralSilenciada"
+                  }
                 }
               }
             },
@@ -992,11 +1000,19 @@
             }
           },
           "409": {
-            "description": "Comando rejeitado pela central",
+            "description": "Comando executado sem alterar o estado da central (ex.: sirene permanece silenciada)",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "example": {
+                  "data": null,
+                  "message": "Comando enviado, mas a central manteve o estado anterior.",
+                  "errors": {
+                    "traceId": "swagger-example",
+                    "details": "release-siren sem mudanca de LED sireneSilenciada"
+                  }
                 }
               }
             },
