@@ -40,6 +40,7 @@ Eventos:
 - `connection.status.changed`
 - `cie.status.updated`
 - `cie.alarm.triggered`
+- `cie.failure.triggered`
 - `cie.log.received`
 
 Envelope:
@@ -65,6 +66,8 @@ Copie `.env.example` para `.env` e ajuste:
 - `MAIN_API_BASE_URL` (base da API principal para relay de push)
 - `MAIN_API_PUSH_TIMEOUT_MS` (default: `3000`)
 - `MAIN_API_PUSH_RETRIES` (default: `3`)
+- `CIE_PUSH_FIRE_ALARM_COOLDOWN_MS` (default: `60000`)
+- `CIE_PUSH_FAILURE_ALARM_COOLDOWN_MS` (default: `60000`)
 
 ## Relay de push (Sprint 2)
 
@@ -75,6 +78,8 @@ Quando o evento `cie.alarm.triggered` ocorre, o servico tenta enviar para:
 Comportamento:
 
 - envio assincrono e nao bloqueante do loop principal da CIE;
+- cooldown de envio aplicado no CIE para evitar flood de notificacoes;
+- push de falha so e enviado quando o bip nao estiver silenciado;
 - retry com backoff curto;
 - logs estruturados com `requestId`, tentativa e tempo de resposta.
 

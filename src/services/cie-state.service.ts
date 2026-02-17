@@ -26,6 +26,16 @@ function getCounters(status: any): StatusCounters {
   };
 }
 
+function isBipSilenced(status: any): boolean {
+  const leds = status?.leds;
+  if (!leds || typeof leds !== 'object') return false;
+
+  const centralSilenciada = (leds as Record<string, unknown>).centralSilenciada;
+  const bipSilenciado = (leds as Record<string, unknown>).bipSilenciado;
+
+  return centralSilenciada === true || bipSilenciado === true;
+}
+
 export class CieStateService extends EventEmitter {
   private readonly client: CieClient;
   private readonly logService: CieLogService;
@@ -326,7 +336,22 @@ export class CieStateService extends EventEmitter {
       this.previousCounters = currentCounters;
 
       if (currentCounters.alarme > 0) {
-        this.emit('cie.alarm.triggered', this.logService.alarmSnapshot(currentCounters));
+        this.emit('cie.alarm.triggered', {
+          ...this.logService.alarmSnapshot(currentCounters),
+          source: 'CIE2500',
+          triggeredAt: new Date().toISOString(),
+        });
+      }
+
+      if (currentCounters.falha > 0) {
+        this.emit('cie.failure.triggered', {
+          isTriggered: true,
+          source: 'CIE2500',
+          triggeredAt: new Date().toISOString(),
+          counters: currentCounters,
+          bipSilenced: isBipSilenced(status),
+          latestFailureLogs: this.logService.latestByType('falha', 20),
+        });
       }
 
       this.emit('cie.status.updated', this.getSnapshot());

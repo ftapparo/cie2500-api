@@ -68,6 +68,13 @@ export class CieManager {
         console.error('[CieManager] Falha ao enviar fire-alarm para API principal:', error);
       });
     });
+    this.cieStateService.on('cie.failure.triggered', (data) => {
+      this.wsBroker?.publish('cie.failure.triggered', data);
+      if (!this.pushRelayService.isEnabled()) return;
+      void this.pushRelayService.sendFailureAlarm(data).catch((error) => {
+        console.error('[CieManager] Falha ao enviar failure-alarm para API principal:', error);
+      });
+    });
     this.cieStateService.on('cie.log.received', (data) => {
       this.wsBroker?.publish('cie.log.received', data);
     });
