@@ -9,6 +9,9 @@ services:
     restart: unless-stopped
     ports:
       - "${PORT:-4021}:4021"
+      - "12345:12345/udp"
+      - "12346:12346/udp"
+      - "12347:12347/udp"
     env_file:
       - .env
     volumes:
@@ -31,4 +34,3 @@ networks:
   nova-network:
     external: true
     name: nova-network
-

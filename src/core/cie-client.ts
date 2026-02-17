@@ -15,9 +15,11 @@ export class CieClient {
   private readonly cie = new CIE2500Native();
   private connected = false;
   private readonly opts: CieClientOptions;
+  private readonly discoveryEnabled: boolean;
 
   constructor(opts: CieClientOptions) {
     this.opts = opts;
+    this.discoveryEnabled = String(process.env.CIE_DISCOVERY_ENABLED || 'true').trim().toLowerCase() !== 'false';
     this.cie.setRequestTimeoutMs(opts.timeoutMs);
     this.cie.onConnectionStatus((isConnected) => {
       this.connected = isConnected;
@@ -30,10 +32,12 @@ export class CieClient {
 
   async connect() {
     return this.queue.run(async () => {
-      try {
-        await this.cie.discover(true);
-      } catch {
-        // best effort only
+      if (this.discoveryEnabled) {
+        try {
+          await this.cie.discover(true);
+        } catch {
+          // best effort only
+        }
       }
 
       const token = await this.cie.authenticate(this.opts.ip, this.opts.password, this.opts.endereco);
@@ -51,10 +55,12 @@ export class CieClient {
         // ignore
       }
       this.connected = false;
-      try {
-        await this.cie.discover(true);
-      } catch {
-        // best effort only
+      if (this.discoveryEnabled) {
+        try {
+          await this.cie.discover(true);
+        } catch {
+          // best effort only
+        }
       }
 
       const token = await this.cie.authenticate(this.opts.ip, this.opts.password, this.opts.endereco);

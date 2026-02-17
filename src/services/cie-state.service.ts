@@ -40,6 +40,7 @@ export class CieStateService extends EventEmitter {
   private readonly client: CieClient;
   private readonly logService: CieLogService;
   private readonly options: CieStateServiceOptions;
+  private readonly restartWatchdogEnabled: boolean;
 
   private pollTimer: NodeJS.Timeout | null = null;
   private reconnectTimer: NodeJS.Timeout | null = null;
@@ -72,6 +73,7 @@ export class CieStateService extends EventEmitter {
     super();
     this.client = client;
     this.logService = logService;
+    this.restartWatchdogEnabled = String(process.env.CIE_RESTART_WATCHDOG_ENABLED || 'true').trim().toLowerCase() !== 'false';
     this.options = {
       pollMs: Math.max(1000, options.pollMs),
       logBackfillLimit: Math.max(1, options.logBackfillLimit),
@@ -92,6 +94,11 @@ export class CieStateService extends EventEmitter {
   }
 
   private hardKillProcess(reason: string) {
+    if (!this.restartWatchdogEnabled) {
+      console.error(`[CIE] Watchdog desativado. Processo nao sera encerrado: ${reason}`);
+      return;
+    }
+
     try {
       console.error(`[CIE] Encerrando processo para recuperacao automatica: ${reason}`);
     } catch {

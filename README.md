@@ -62,6 +62,8 @@ Copie `.env.example` para `.env` e ajuste:
 - `CIE_REQUEST_TIMEOUT_MS`
 - `CIE_LOG_BACKFILL_LIMIT`
 - `CIE_LOG_RING_SIZE`
+- `CIE_DISCOVERY_ENABLED` (default recomendado em Docker Windows: `false`)
+- `CIE_RESTART_WATCHDOG_ENABLED` (default recomendado em Docker: `false`)
 - `CIE_CMD_*` (mapeamento dos comandos criticos)
 - `MAIN_API_BASE_URL` (base da API principal para relay de push)
 - `MAIN_API_PUSH_TIMEOUT_MS` (default: `3000`)
@@ -95,6 +97,13 @@ npm run dev
 ```bash
 docker compose up --build -d
 ```
+
+Observacoes para Docker no Windows:
+
+- publique as portas UDP `12345/12346/12347` (ja previstas no compose);
+- use `CIE_DISCOVERY_ENABLED=false` para operar sem descoberta multicast;
+- mantenha `CIE_IP` fixo da central;
+- se o ambiente for instavel, use `CIE_RESTART_WATCHDOG_ENABLED=false` para evitar reinicio forcado do processo.
 
 ## Runbook de validacao em campo
 
