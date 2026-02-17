@@ -512,14 +512,16 @@ export class CieStateService extends EventEmitter {
     this.backfillInFlight += 1;
     try {
       const first = await this.client.getLog(type, 1);
+      const totalByPayload = Number(first?.contador || 0);
+      const parsedTotal = Number.isFinite(totalByPayload) ? Math.floor(totalByPayload) : 0;
+      if (parsedTotal <= 0) {
+        return;
+      }
+
       const firstNormalized = this.logService.add(type, first);
       if (firstNormalized) this.emit('cie.log.received', firstNormalized);
 
-      const totalByPayload = Number(first?.contador || 0);
-      const upperBound = Math.min(
-        target,
-        Number.isFinite(totalByPayload) && totalByPayload > 0 ? Math.floor(totalByPayload) : target
-      );
+      const upperBound = Math.min(target, parsedTotal);
 
       for (let i = 2; i <= upperBound; i += 1) {
         try {

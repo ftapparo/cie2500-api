@@ -20,6 +20,8 @@ export type NormalizedCieLog = {
   loop: number | null;
   deviceName: string | null;
   zoneName: string | null;
+  deviceTypeCode: number | null;
+  deviceTypeLabel: string | null;
   deviceClassification: CieDeviceClassification | null;
   eventType: number | null;
   blocked: boolean | null;

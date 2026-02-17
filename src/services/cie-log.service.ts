@@ -9,7 +9,10 @@ type ListOptions = {
 
 function normalizeString(value: unknown): string | null {
   if (typeof value !== 'string') return null;
-  const cleaned = trimNulls(value).trim();
+  const cleaned = trimNulls(value)
+    .replace(/[\x00-\x1F\x7F]/g, '')
+    .replace(/\u00FF/gi, '')
+    .trim();
   return cleaned.length ? cleaned : null;
 }
 
@@ -152,6 +155,16 @@ function classifyDevice(raw: any, deviceName: string | null): CieDeviceClassific
   };
 }
 
+function isGarbageLogPayload(raw: any, address: number | null, zone: number | null, loop: number | null): boolean {
+  const rawDevice = String(raw?.nome_dispositivo ?? '');
+  const rawZone = String(raw?.nome_zona ?? '');
+  const containsFfGarbage = /ÿ{3,}/i.test(rawDevice) || /ÿ{3,}/i.test(rawZone);
+  const invalidAddressing = address === 255 || zone === 255 || loop === 255;
+  const totalByPayload = Number(raw?.contador || 0);
+  const hasNoCounter = !Number.isFinite(totalByPayload) || totalByPayload <= 0;
+  return hasNoCounter && (invalidAddressing || containsFfGarbage);
+}
+
 export class CieLogService {
   private readonly ringSize: number;
   private readonly logs: NormalizedCieLog[] = [];
@@ -178,11 +191,13 @@ export class CieLogService {
     const address = toNumber(raw?.endereco);
     const zone = toNumber(raw?.zona);
     const loop = toNumber(raw?.laco);
+    if (isGarbageLogPayload(raw, address, zone, loop)) return null;
     const occurredAt = parseOccurredAt(raw);
     const key = `${resolvedType}:${id}:${address ?? 'na'}:${occurredAt}`;
     if (this.dedup.has(key)) return null;
 
     const deviceName = normalizeString(raw?.nome_dispositivo);
+    const deviceClassification = classifyDevice(raw, deviceName);
     const log: NormalizedCieLog = {
       key,
       type: resolvedType,
@@ -192,7 +207,9 @@ export class CieLogService {
       loop,
       deviceName,
       zoneName: normalizeString(raw?.nome_zona),
-      deviceClassification: classifyDevice(raw, deviceName),
+      deviceTypeCode: deviceClassification?.typeCode ?? null,
+      deviceTypeLabel: deviceClassification?.typeLabel ?? deviceClassification?.resolvedLabel ?? null,
+      deviceClassification,
       eventType: toNumber(raw?.tipo),
       blocked: typeof raw?.bloqueado === 'boolean' ? raw.bloqueado : (toNumber(raw?.bloqueado) === 1),
       occurredAt,
