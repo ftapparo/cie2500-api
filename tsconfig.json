@@ -16,6 +16,8 @@
   "exclude": [
     "node_modules",
     "dist",
-    "intelbras"
+    "src/intelbras/ProgramadorCIE/**/*",
+    "src/intelbras/CIE_USB.js",
+    "src/intelbras/connectionController.js"
   ]
 }
