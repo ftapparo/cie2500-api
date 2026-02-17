@@ -146,6 +146,75 @@ export class CieCommandService {
     return this.client.sendButtonCommand(mapping.button, mapping.parameter, identifier);
   }
 
+  private invertParameter(mapping: CommandMapping): CommandMapping {
+    return {
+      button: mapping.button,
+      parameter: mapping.parameter === 0 ? 1 : 0,
+    };
+  }
+
+  private pushUniqueMapping(list: CommandMapping[], mapping: CommandMapping | null) {
+    if (!mapping) return;
+    if (list.some((item) => item.button === mapping.button && item.parameter === mapping.parameter)) return;
+    list.push(mapping);
+  }
+
+  private async readLedState(
+    ledKey: 'centralSilenciada' | 'sireneSilenciada'
+  ): Promise<boolean | null> {
+    try {
+      const status = await this.client.status();
+      const ledValue = (status as any)?.leds?.[ledKey];
+      return typeof ledValue === 'boolean' ? ledValue : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private async executeUntilLedTarget(
+    ledKey: 'centralSilenciada' | 'sireneSilenciada',
+    targetValue: boolean,
+    candidates: CommandMapping[]
+  ) {
+    let lastResponse: any = null;
+    let lastError: any = null;
+    let hadDeterministicLedRead = false;
+    let lastLedState: boolean | null = null;
+
+    for (const candidate of candidates) {
+      try {
+        const response = await this.executeCustomMapping(candidate);
+        lastResponse = response;
+
+        if (this.isNotConfiguredResponse(response)) {
+          continue;
+        }
+
+        const ledState = await this.readLedState(ledKey);
+        lastLedState = ledState;
+        if (ledState !== null) hadDeterministicLedRead = true;
+        if (ledState === targetValue || ledState === null) {
+          return response;
+        }
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    if (hadDeterministicLedRead && lastLedState !== targetValue) {
+      const err = new Error('Comando enviado, mas a central manteve o estado anterior.');
+      (err as any).status = 409;
+      throw err;
+    }
+
+    if (lastResponse) return lastResponse;
+    if (lastError) throw lastError;
+
+    const err = new Error('Nao foi possivel confirmar execucao do comando na central.');
+    (err as any).status = 409;
+    throw err;
+  }
+
   private executeMapped(action: CommandAction) {
     const mapping = this.mapping[action];
     if (!mapping) {
@@ -159,91 +228,49 @@ export class CieCommandService {
   }
 
   async execute(action: CommandAction) {
-    // Release de bip/sirene precisa evitar disparar o mesmo payload de "silenciar".
+    // Release de bip/sirene: algumas centrais variam no parametro (toggle 0/1).
+    // Tentamos combinacoes e validamos pelo LED correspondente.
     if (action === 'release-bip') {
       const releaseBip = this.mapping['release-bip'];
       const silenceBip = this.mapping['silence-bip'];
+      const release = this.mapping['release'];
+      const candidates: CommandMapping[] = [];
+
+      this.pushUniqueMapping(candidates, releaseBip);
+      if (releaseBip) this.pushUniqueMapping(candidates, this.invertParameter(releaseBip));
+      this.pushUniqueMapping(candidates, release);
+      if (release) this.pushUniqueMapping(candidates, this.invertParameter(release));
+      this.pushUniqueMapping(candidates, silenceBip);
+      if (silenceBip) this.pushUniqueMapping(candidates, this.invertParameter(silenceBip));
+
       if (this.sameMapping(releaseBip, silenceBip) && silenceBip) {
-        return this.executeCustomMapping({
-          button: silenceBip.button,
-          parameter: silenceBip.parameter === 0 ? 1 : 0,
-        });
+        candidates.unshift(this.invertParameter(silenceBip));
       }
+
+      return this.executeUntilLedTarget('centralSilenciada', false, candidates);
     }
 
     if (action === 'release-siren') {
       const releaseSiren = this.mapping['release-siren'];
       const silenceSiren = this.mapping['silence-siren'];
+      const release = this.mapping['release'];
+      const candidates: CommandMapping[] = [];
+
+      this.pushUniqueMapping(candidates, releaseSiren);
+      if (releaseSiren) this.pushUniqueMapping(candidates, this.invertParameter(releaseSiren));
+      this.pushUniqueMapping(candidates, release);
+      if (release) this.pushUniqueMapping(candidates, this.invertParameter(release));
+      this.pushUniqueMapping(candidates, silenceSiren);
+      if (silenceSiren) this.pushUniqueMapping(candidates, this.invertParameter(silenceSiren));
+
       if (this.sameMapping(releaseSiren, silenceSiren) && silenceSiren) {
-        return this.executeCustomMapping({
-          button: silenceSiren.button,
-          parameter: silenceSiren.parameter === 0 ? 1 : 0,
-        });
+        candidates.unshift(this.invertParameter(silenceSiren));
       }
+
+      return this.executeUntilLedTarget('sireneSilenciada', false, candidates);
     }
 
     const primary = await this.executeMapped(action);
-
-    // Algumas centrais nao possuem comando dedicado de release para bip/sirene.
-    // Fallback para comportamento do software original:
-    // mesmo botao com parametro invertido (toggle), depois demais alternativas.
-    if (action === 'release-bip' && this.isNotConfiguredResponse(primary)) {
-      const silenceBip = this.mapping['silence-bip'];
-      if (silenceBip) {
-        try {
-          const inverseToggle = await this.executeCustomMapping({
-            button: silenceBip.button,
-            parameter: silenceBip.parameter === 0 ? 1 : 0,
-          });
-          if (!this.isNotConfiguredResponse(inverseToggle)) return inverseToggle;
-        } catch {
-          // tenta proximo fallback
-        }
-      }
-
-      try {
-        const release = await this.executeMapped('release');
-        if (!this.isNotConfiguredResponse(release)) return release;
-      } catch {
-        // tenta proximo fallback
-      }
-
-      try {
-        const toggle = await this.executeMapped('silence-bip');
-        if (!this.isNotConfiguredResponse(toggle)) return toggle;
-      } catch {
-        // mantem resposta primaria
-      }
-    }
-
-    if (action === 'release-siren' && this.isNotConfiguredResponse(primary)) {
-      const silenceSiren = this.mapping['silence-siren'];
-      if (silenceSiren) {
-        try {
-          const inverseToggle = await this.executeCustomMapping({
-            button: silenceSiren.button,
-            parameter: silenceSiren.parameter === 0 ? 1 : 0,
-          });
-          if (!this.isNotConfiguredResponse(inverseToggle)) return inverseToggle;
-        } catch {
-          // tenta proximo fallback
-        }
-      }
-
-      try {
-        const release = await this.executeMapped('release');
-        if (!this.isNotConfiguredResponse(release)) return release;
-      } catch {
-        // tenta proximo fallback
-      }
-
-      try {
-        const toggle = await this.executeMapped('silence-siren');
-        if (!this.isNotConfiguredResponse(toggle)) return toggle;
-      } catch {
-        // mantem resposta primaria
-      }
-    }
 
     return primary;
   }
