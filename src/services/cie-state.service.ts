@@ -120,10 +120,25 @@ export class CieStateService extends EventEmitter {
     }, 100);
   }
 
+  private clearRuntimeStateForRestart() {
+    this.logService.reset();
+    this.snapshot.nomeModelo = null;
+    this.snapshot.mac = null;
+    this.snapshot.info = null;
+    this.snapshot.dataHora = null;
+    this.snapshot.status = null;
+    this.snapshot.lastUpdated = null;
+    this.snapshot.lastError = null;
+    this.previousCounters = { alarme: 0, falha: 0, supervisao: 0, bloqueio: 0 };
+    this.ensureByType = {};
+    this.warmupPromise = null;
+    this.backfillInFlight = 0;
+  }
+
   markRestarting(durationMs = 60000) {
     const safeDuration = Math.max(5000, Math.min(300000, Math.floor(durationMs)));
+    this.clearRuntimeStateForRestart();
     this.snapshot.restartingUntil = Date.now() + safeDuration;
-    this.snapshot.lastError = null;
     this.snapshot.reconnecting = true;
     this.snapshot.reconnectAttempt = 0;
     this.stopPolling();
