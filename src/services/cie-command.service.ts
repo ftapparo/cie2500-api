@@ -253,28 +253,17 @@ export class CieCommandService {
   }
 
   async execute(action: CommandAction) {
-    // Release de bip/sirene: algumas centrais variam no parametro (toggle 0/1).
-    // Tentamos combinacoes e validamos pelo LED correspondente.
+    // Comportamento observado no software oficial:
+    // o comando de "silenciar bip" e unidirecional na operacao remota.
+    // A reativacao ocorre apenas localmente na central (ou via reinicio).
     if (action === 'release-bip') {
-      const releaseBip = this.mapping['release-bip'];
-      const silenceBip = this.mapping['silence-bip'];
-      const release = this.mapping['release'];
-      const candidates: CommandMapping[] = [];
-
-      this.pushUniqueMapping(candidates, releaseBip);
-      if (releaseBip) this.pushUniqueMapping(candidates, this.invertParameter(releaseBip));
-      this.pushUniqueMapping(candidates, release);
-      if (release) this.pushUniqueMapping(candidates, this.invertParameter(release));
-      this.pushUniqueMapping(candidates, silenceBip);
-      if (silenceBip) this.pushUniqueMapping(candidates, this.invertParameter(silenceBip));
-
-      if (this.sameMapping(releaseBip, silenceBip) && silenceBip) {
-        candidates.unshift(this.invertParameter(silenceBip));
-      }
-
-      return this.executeUntilLedTarget('centralSilenciada', false, candidates);
+      const err = new Error('Reativar bip nao e suportado por comando remoto nesta central.');
+      (err as any).status = 409;
+      throw err;
     }
 
+    // Release de bip/sirene: algumas centrais variam no parametro (toggle 0/1).
+    // Tentamos combinacoes e validamos pelo LED correspondente.
     if (action === 'release-siren') {
       const releaseSiren = this.mapping['release-siren'];
       const silenceSiren = this.mapping['silence-siren'];

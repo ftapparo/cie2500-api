@@ -924,7 +924,7 @@
         "tags": [
           "Comandos"
         ],
-        "summary": "Reativar bip interno da central",
+        "summary": "Reativar bip interno da central (nao suportado remotamente na CIE2500)",
         "responses": {
           "200": {
             "description": "Comando executado",
@@ -945,7 +945,7 @@
             }
           },
           "409": {
-            "description": "Comando executado sem alterar o estado da central (ex.: bip permanece silenciado)",
+            "description": "Comando nao suportado remotamente nesta central",
             "content": {
               "application/json": {
                 "schema": {
@@ -953,10 +953,10 @@
                 },
                 "example": {
                   "data": null,
-                  "message": "Comando enviado, mas a central manteve o estado anterior.",
+                  "message": "Reativar bip nao e suportado por comando remoto nesta central.",
                   "errors": {
                     "traceId": "swagger-example",
-                    "details": "release-bip sem mudanca de LED centralSilenciada"
+                    "details": "A reativacao do bip ocorre localmente na central ou apos reinicio."
                   }
                 }
               }
