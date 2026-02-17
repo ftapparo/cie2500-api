@@ -1,6 +1,6 @@
-# CIE2500 Service
+﻿# CIE2500 Service
 
-Microserviço REST + WebSocket para integração com central de incêndio Intelbras CIE2500.
+Microservico REST + WebSocket para integracao com central de incendio Intelbras CIE2500.
 
 ## Endpoints REST
 
@@ -52,7 +52,7 @@ Envelope:
 }
 ```
 
-## Variáveis de ambiente
+## Variaveis de ambiente
 
 Copie `.env.example` para `.env` e ajuste:
 
@@ -61,9 +61,24 @@ Copie `.env.example` para `.env` e ajuste:
 - `CIE_REQUEST_TIMEOUT_MS`
 - `CIE_LOG_BACKFILL_LIMIT`
 - `CIE_LOG_RING_SIZE`
-- `CIE_CMD_*` (mapeamento dos comandos críticos)
+- `CIE_CMD_*` (mapeamento dos comandos criticos)
+- `MAIN_API_BASE_URL` (base da API principal para relay de push)
+- `MAIN_API_PUSH_TIMEOUT_MS` (default: `3000`)
+- `MAIN_API_PUSH_RETRIES` (default: `3`)
 
-## Execução local
+## Relay de push (Sprint 2)
+
+Quando o evento `cie.alarm.triggered` ocorre, o servico tenta enviar para:
+
+- `POST {MAIN_API_BASE_URL}/v2/api/push/events/fire-alarm`
+
+Comportamento:
+
+- envio assincrono e nao bloqueante do loop principal da CIE;
+- retry com backoff curto;
+- logs estruturados com `requestId`, tentativa e tempo de resposta.
+
+## Execucao local
 
 ```bash
 npm install
@@ -76,9 +91,9 @@ npm run dev
 docker compose up --build -d
 ```
 
-## Runbook de validação em campo
+## Runbook de validacao em campo
 
-1. Confirmar conexão:
+1. Confirmar conexao:
 - chamar `GET /v1/api/health` e validar `connected=true`.
 
 2. Validar evento de disparo:
@@ -99,4 +114,4 @@ docker compose up --build -d
 5. Validar comando de reiniciar central:
 - ajustar `CIE_CMD_RESTART_*`;
 - chamar `POST /v1/api/cie/commands/restart`;
-- validar transição de conexão e retorno da comunicação.
+- validar transicao de conexao e retorno da comunicacao.

@@ -3,6 +3,7 @@ import { CieClient } from './cie-client';
 import { CieCommandService } from '../services/cie-command.service';
 import { CieLogService } from '../services/cie-log.service';
 import { CieStateService } from '../services/cie-state.service';
+import { PushRelayService } from '../services/push-relay.service';
 import { CieWsBroker } from '../ws/cie-ws-broker';
 
 export type CieManagerConfig = {
@@ -18,6 +19,7 @@ export class CieManager {
   private readonly cieLogService: CieLogService;
   private readonly cieStateService: CieStateService;
   private readonly cieCommandService: CieCommandService;
+  private readonly pushRelayService: PushRelayService;
 
   constructor(config: CieManagerConfig) {
     this.fireCentral = config;
@@ -42,6 +44,7 @@ export class CieManager {
       logBackfillLimit: CIE_LOG_BACKFILL_LIMIT,
     });
     this.cieCommandService = new CieCommandService(this.cieClient);
+    this.pushRelayService = new PushRelayService();
   }
 
   public async connectToCie() {
@@ -60,6 +63,10 @@ export class CieManager {
     });
     this.cieStateService.on('cie.alarm.triggered', (data) => {
       this.wsBroker?.publish('cie.alarm.triggered', data);
+      if (!this.pushRelayService.isEnabled()) return;
+      void this.pushRelayService.sendFireAlarm(data).catch((error) => {
+        console.error('[CieManager] Falha ao enviar fire-alarm para API principal:', error);
+      });
     });
     this.cieStateService.on('cie.log.received', (data) => {
       this.wsBroker?.publish('cie.log.received', data);
