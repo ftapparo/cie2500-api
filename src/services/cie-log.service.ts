@@ -50,6 +50,13 @@ function parseFlexibleNumber(value: unknown, fallback: number, max: number): num
   return fallback;
 }
 
+// A central envia data/hora local de Brasilia (UTC-3, sem horario de verao), independente do TZ do processo.
+const CIE_UTC_OFFSET_HOURS = -3;
+
+function localCieTimeToIso(year: number, month: number, day: number, hour: number, min: number, sec: number): string {
+  return new Date(Date.UTC(year, month - 1, day, hour - CIE_UTC_OFFSET_HOURS, min, sec)).toISOString();
+}
+
 function parseOccurredAt(raw: any): string {
   const dataStr = typeof raw?.data === 'string' ? raw.data.trim() : '';
   const horaStr = typeof raw?.hora === 'string' ? raw.hora.trim() : '';
@@ -65,7 +72,7 @@ function parseOccurredAt(raw: any): string {
     const sec = Number(timeMatch[3]);
     const valid = [day, month, year, hour, min, sec].every(Number.isFinite);
     if (valid) {
-      return new Date(year, month - 1, day, hour, min, sec).toISOString();
+      return localCieTimeToIso(year, month, day, hour, min, sec);
     }
   }
 
@@ -85,7 +92,7 @@ function parseOccurredAt(raw: any): string {
     return new Date().toISOString();
   }
 
-  return new Date(year, month - 1, day, hour, min, sec).toISOString();
+  return localCieTimeToIso(year, month, day, hour, min, sec);
 }
 
 const DEVICE_TYPE_LABELS: Record<number, string> = {
