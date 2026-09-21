@@ -32,6 +32,7 @@ export function getCieStatus(_req: Request, res: Response, stateService: CieStat
 export function getPanelStatus(_req: Request, res: Response, stateService: CieStateService, logService: CieLogService) {
   const snapshot = stateService.getSnapshot();
   const latestFailureEvent = logService.latestByType('falha', 1)[0] ?? null;
+  const latestAlarmEvent = logService.latestByType('alarme', 1)[0] ?? null;
   const restartingUntil = Number(snapshot.restartingUntil || 0);
   const restarting = Number.isFinite(restartingUntil) && restartingUntil > Date.now();
 
@@ -55,6 +56,7 @@ export function getPanelStatus(_req: Request, res: Response, stateService: CieSt
     counters: snapshot.status?.status ?? null,
     leds: snapshot.status?.leds ?? null,
     latestFailureEvent,
+    latestAlarmEvent,
   });
 }
 
