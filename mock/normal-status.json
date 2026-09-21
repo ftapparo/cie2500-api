@@ -1,0 +1,62 @@
+{
+  "data": {
+    "connected": true,
+    "restartingUntil": null,
+    "nomeModelo": {
+      "endereco": 0,
+      "nome": "NOVA RESIDENCE\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+      "modelo": "CIE2500"
+    },
+    "mac": {
+      "mac": "24:FD:0D:60:22:E0"
+    },
+    "info": {
+      "dispositivoLaco0": 69,
+      "dispositivoLaco1": 196,
+      "dispositivoLaco2": 87,
+      "saidaLaco0": 3,
+      "saidaLaco1": 4,
+      "saidaLaco2": 2,
+      "sireneLaco0": 1,
+      "sireneLaco1": 0,
+      "sireneLaco2": 0,
+      "atuadorLaco0": 2,
+      "atuadorLaco1": 4,
+      "atuadorLaco2": 2,
+      "regra": 8,
+      "zona": 8
+    },
+    "dataHora": {
+      "timestamp": 1790015722127,
+      "utc": "2026-09-21T18:35:22.127Z",
+      "local": "21/09/2026, 15:35:22"
+    },
+    "status": {
+      "status": {
+        "alarme": 0,
+        "falha": 0,
+        "supervisao": 0,
+        "bloqueio": 2,
+        "regrasTemporizando": 0
+      },
+      "leds": {
+        "fonteOperando": true,
+        "fonteFalha": true,
+        "centralSilenciada": false,
+        "alarmeGeral": false,
+        "sireneBrigada": false,
+        "lacoOperando": false,
+        "regrasTemporizando": false,
+        "sireneContinua": false,
+        "sirenePulsada": false,
+        "sireneSilenciada": false
+      }
+    },
+    "lastUpdated": 1790015722127,
+    "lastError": null,
+    "reconnecting": false,
+    "reconnectAttempt": 0
+  },
+  "message": null,
+  "errors": null
+}

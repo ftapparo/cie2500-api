@@ -1,0 +1,25 @@
+{
+  "data": {
+    "dispositivo": 2,
+    "sirene": 0,
+    "saida": 0,
+    "atuador": 0,
+    "regra": 0,
+    "zona": 0,
+    "laco": 0,
+    "dispositivoLaco0": 0,
+    "dispositivoLaco1": 1,
+    "dispositivoLaco2": 1,
+    "saidaLaco0": 0,
+    "saidaLaco1": 0,
+    "saidaLaco2": 0,
+    "sireneLaco0": 0,
+    "sireneLaco1": 0,
+    "sireneLaco2": 0,
+    "atuadorLaco0": 0,
+    "atuadorLaco1": 0,
+    "atuadorLaco2": 0
+  },
+  "message": null,
+  "errors": null
+}

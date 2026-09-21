@@ -1,0 +1,149 @@
+{
+  "data": {
+    "online": true,
+    "connected": true,
+    "restarting": false,
+    "restartingUntil": null,
+    "reconnecting": false,
+    "reconnectAttempt": 0,
+    "lastError": null,
+    "lastUpdated": 1790015837218,
+    "central": {
+      "ip": "192.168.0.4",
+      "endereco": 0,
+      "nome": "NOVA RESIDENCE",
+      "modelo": "CIE2500",
+      "mac": "24:FD:0D:60:22:E0"
+    },
+    "dataHora": {
+      "timestamp": 1790015837218,
+      "utc": "2026-09-21T18:37:17.218Z",
+      "local": "21/09/2026, 15:37:17"
+    },
+    "counters": {
+      "alarme": 0,
+      "falha": 1,
+      "supervisao": 0,
+      "bloqueio": 2,
+      "regrasTemporizando": 0
+    },
+    "leds": {
+      "fonteOperando": true,
+      "fonteFalha": true,
+      "centralSilenciada": false,
+      "alarmeGeral": false,
+      "sireneBrigada": false,
+      "lacoOperando": false,
+      "regrasTemporizando": false,
+      "sireneContinua": false,
+      "sirenePulsada": true,
+      "sireneSilenciada": false
+    },
+    "latestFailureEvent": {
+      "key": "falha:1099:181:2026-09-21T18:36:43.000Z",
+      "type": "falha",
+      "id": 1099,
+      "zone": 2,
+      "address": 181,
+      "loop": 1,
+      "deviceName": "12 ANDAR B T-A",
+      "zoneName": "TORRE A",
+      "deviceTypeCode": 3,
+      "deviceTypeLabel": "Acionador Manual",
+      "deviceClassification": {
+        "typeCode": 3,
+        "subtypeCode": 0,
+        "typeLabel": "Acionador Manual",
+        "subtypeLabel": "Nao informado",
+        "resolvedLabel": "Nao informado",
+        "source": "codes"
+      },
+      "eventType": 7,
+      "blocked": false,
+      "occurredAt": "2026-09-21T18:36:43.000Z",
+      "raw": {
+        "zona": 2,
+        "endereco": 181,
+        "id": 1099,
+        "origem": 0,
+        "laco": 1,
+        "tipo": 7,
+        "bloqueado": 0,
+        "repetidora": 0,
+        "nome_dispositivo": "12 ANDAR B T-A",
+        "tipo_dispositivo": 3,
+        "subtipo_dispositivo": 0,
+        "nome_zona": "TORRE A\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+        "hora": "15:36:43",
+        "data": "21/09/2026",
+        "date": {
+          "year": 2026,
+          "month": "9",
+          "day": "21",
+          "hour": "15",
+          "min": "36",
+          "sec": "43"
+        },
+        "primeiro_evento": true,
+        "contador": 1000,
+        "tipo_evento": 1,
+        "numero": 1
+      },
+      "createdAt": 1790015801217
+    },
+    "latestAlarmEvent": {
+      "key": "alarme:935:181:2026-09-21T18:15:10.000Z",
+      "type": "alarme",
+      "id": 935,
+      "zone": 2,
+      "address": 181,
+      "loop": 1,
+      "deviceName": "12 ANDAR B T-A",
+      "zoneName": "TORRE A",
+      "deviceTypeCode": 3,
+      "deviceTypeLabel": "Acionador Manual",
+      "deviceClassification": {
+        "typeCode": 3,
+        "subtypeCode": 0,
+        "typeLabel": "Acionador Manual",
+        "subtypeLabel": "Nao informado",
+        "resolvedLabel": "Nao informado",
+        "source": "codes"
+      },
+      "eventType": 1,
+      "blocked": false,
+      "occurredAt": "2026-09-21T18:15:10.000Z",
+      "raw": {
+        "zona": 2,
+        "endereco": 181,
+        "id": 935,
+        "origem": 0,
+        "laco": 1,
+        "tipo": 1,
+        "bloqueado": 0,
+        "repetidora": 0,
+        "nome_dispositivo": "12 ANDAR B T-A",
+        "tipo_dispositivo": 3,
+        "subtipo_dispositivo": 0,
+        "nome_zona": "TORRE A\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+        "hora": "15:15:10",
+        "data": "21/09/2026",
+        "date": {
+          "year": 2026,
+          "month": "9",
+          "day": "21",
+          "hour": "15",
+          "min": "15",
+          "sec": "10"
+        },
+        "primeiro_evento": true,
+        "contador": 936,
+        "tipo_evento": 0,
+        "numero": 1
+      },
+      "createdAt": 1790015720173
+    }
+  },
+  "message": null,
+  "errors": null
+}
