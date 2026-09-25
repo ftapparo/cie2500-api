@@ -13,10 +13,48 @@ services:
       - "12346:12346/udp"
       - "12347:12347/udp"
     # env_file removido: no Portainer (stack via Git), o .env nao esta no
-    # clone (fica no .gitignore por conter segredos). As variaveis vem do
-    # campo "Environment variables" da stack.
+    # clone (fica no .gitignore por conter segredos).
+    #
+    # IMPORTANTE: "Environment variables" da stack no Portainer NAO injeta
+    # variaveis no container automaticamente - elas so ficam disponiveis
+    # para interpolacao do compose (as referencias abaixo). Cada uma precisa
+    # ser listada aqui explicitamente para chegar ao processo do container.
     environment:
       - TZ=America/Sao_Paulo
+      - CIE_IP=${CIE_IP}
+      - CIE_PASSWORD=${CIE_PASSWORD}
+      - CIE_ENDERECO=${CIE_ENDERECO}
+      - CIE_POLL_MS=${CIE_POLL_MS}
+      - CIE_REQUEST_TIMEOUT_MS=${CIE_REQUEST_TIMEOUT_MS}
+      - CIE_LOG_BACKFILL_LIMIT=${CIE_LOG_BACKFILL_LIMIT}
+      - CIE_LOG_RING_SIZE=${CIE_LOG_RING_SIZE}
+      - CIE_DISCOVERY_ENABLED=${CIE_DISCOVERY_ENABLED}
+      - CIE_RESTART_WATCHDOG_ENABLED=${CIE_RESTART_WATCHDOG_ENABLED}
+      - CIE_CMD_SILENCE_BUTTON=${CIE_CMD_SILENCE_BUTTON}
+      - CIE_CMD_SILENCE_PARAM=${CIE_CMD_SILENCE_PARAM}
+      - CIE_CMD_RELEASE_BUTTON=${CIE_CMD_RELEASE_BUTTON}
+      - CIE_CMD_RELEASE_PARAM=${CIE_CMD_RELEASE_PARAM}
+      - CIE_CMD_RELEASE_BIP_BUTTON=${CIE_CMD_RELEASE_BIP_BUTTON}
+      - CIE_CMD_RELEASE_BIP_PARAM=${CIE_CMD_RELEASE_BIP_PARAM}
+      - CIE_CMD_RELEASE_SIREN_BUTTON=${CIE_CMD_RELEASE_SIREN_BUTTON}
+      - CIE_CMD_RELEASE_SIREN_PARAM=${CIE_CMD_RELEASE_SIREN_PARAM}
+      - CIE_CMD_RESTART_BUTTON=${CIE_CMD_RESTART_BUTTON}
+      - CIE_CMD_RESTART_PARAM=${CIE_CMD_RESTART_PARAM}
+      - CIE_CMD_BRIGADE_SIREN_BUTTON=${CIE_CMD_BRIGADE_SIREN_BUTTON}
+      - CIE_CMD_BRIGADE_SIREN_PARAM=${CIE_CMD_BRIGADE_SIREN_PARAM}
+      - CIE_CMD_ALARM_GENERAL_BUTTON=${CIE_CMD_ALARM_GENERAL_BUTTON}
+      - CIE_CMD_ALARM_GENERAL_PARAM=${CIE_CMD_ALARM_GENERAL_PARAM}
+      - CIE_CMD_DELAY_SIREN_BUTTON=${CIE_CMD_DELAY_SIREN_BUTTON}
+      - CIE_CMD_DELAY_SIREN_PARAM=${CIE_CMD_DELAY_SIREN_PARAM}
+      - CIE_CMD_SILENCE_BIP_BUTTON=${CIE_CMD_SILENCE_BIP_BUTTON}
+      - CIE_CMD_SILENCE_BIP_PARAM=${CIE_CMD_SILENCE_BIP_PARAM}
+      - CIE_CMD_SILENCE_SIREN_BUTTON=${CIE_CMD_SILENCE_SIREN_BUTTON}
+      - CIE_CMD_SILENCE_SIREN_PARAM=${CIE_CMD_SILENCE_SIREN_PARAM}
+      - MAIN_API_BASE_URL=${MAIN_API_BASE_URL}
+      - MAIN_API_PUSH_TIMEOUT_MS=${MAIN_API_PUSH_TIMEOUT_MS}
+      - MAIN_API_PUSH_RETRIES=${MAIN_API_PUSH_RETRIES}
+      - CIE_PUSH_FIRE_ALARM_COOLDOWN_MS=${CIE_PUSH_FIRE_ALARM_COOLDOWN_MS}
+      - CIE_PUSH_FAILURE_ALARM_COOLDOWN_MS=${CIE_PUSH_FAILURE_ALARM_COOLDOWN_MS}
     volumes:
       - C:/Servidor/docker/logs:/app/logs
     networks:
