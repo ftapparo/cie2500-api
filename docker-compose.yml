@@ -12,8 +12,9 @@ services:
       - "12345:12345/udp"
       - "12346:12346/udp"
       - "12347:12347/udp"
-    env_file:
-      - .env
+    # env_file removido: no Portainer (stack via Git), o .env nao esta no
+    # clone (fica no .gitignore por conter segredos). As variaveis vem do
+    # campo "Environment variables" da stack.
     environment:
       - TZ=America/Sao_Paulo
     volumes:
