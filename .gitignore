@@ -1,2 +1,10 @@
 /node_modules
 /dist
+
+# --- Segredos (corrigido na contenção de segurança) ---
+# ATENÇÃO: estes arquivos estiveram versionados. Remover do índice com
+#   git rm --cached .env
+# e rotacionar todo segredo que estava neles.
+.env
+.env.*
+!.env.example
