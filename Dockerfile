@@ -17,7 +17,10 @@ COPY package*.json ./
 RUN npm install --only=production && npm cache clean --force
 
 COPY --from=builder /app/dist ./dist
-COPY .env ./.env
+
+# .env NAO e copiado para a imagem: gravaria segredos numa camada visivel a
+# qualquer "docker history". As variaveis chegam em runtime, via Environment
+# variables da stack no Portainer.
 
 EXPOSE 4021
 
