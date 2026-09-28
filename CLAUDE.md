@@ -2,7 +2,7 @@
 
 Microserviço de integração com a central de incêndio Intelbras CIE2500 do Condomínio Nova Residence. Comunicação direta via socket com a central, REST + WebSocket, relay de alarme/falha para a `nova-api` (que envia Web Push aos moradores).
 
-Veja `README.md` para visão completa (endpoints, WebSocket, runbook de campo) e `CHANGELOG.md` para o histórico. Este arquivo é o contexto operacional para trabalhar no código.
+Veja `README.md` para visão completa (endpoints, WebSocket, runbook de campo) e `CHANGELOG.md` para o histórico. Este arquivo é o contexto real do projeto; `AGENTS.md` tem as regras genéricas de processo/arquitetura (cohesion, boundaries, validation) — leia os dois, começando por este.
 
 ## 🔴 Regra absoluta: nunca tocar em `src/v2/`
 
@@ -30,7 +30,20 @@ src/
   intelbras/         # SDK original do fabricante — NÃO MODIFICAR, é vendor code
 ```
 
-**Regra crítica**: existe uma única conexão física com a central por processo. `CieManager` é criado uma vez em `server.ts`, é agnóstico de framework HTTP (`bindWebSocket(server)` recebe qualquer `http.Server`) — se uma futura camada de API for adicionada, ela deve reutilizar a mesma instância, nunca criar uma segunda conexão com a central.
+**Regra crítica**: existe uma única conexão física com a central por processo. `CieManager` é criado uma vez em `server.ts`, é agnóstico de framework HTTP (`bindWebSocket(server)` recebe qualquer `http.Server`) — injetado tanto na v2 quanto na v3 (`StartWebServerV3(cieInstance)`), nunca criar uma segunda conexão com a central.
+
+### `v3/` — organizada por feature, não por camada
+
+```
+v3/
+  health/         health.routes.ts — reflete estado real da conexão (CieManager.getStateService())
+  cie/            cie.routes.ts, cie.schema.ts — 6 rotas de leitura (status, panel, alarms, logs, counters)
+  shared/         response.ts, reply-helpers.ts, service-auth.ts (CIE_SERVICE_TOKEN)
+  openapi.json    spec escrito à mão, não gerado
+  server.ts       bootstrap do Fastify, porta própria (PORT_V3)
+```
+
+Path público da v3 é `/v3/api/*`, por convenção com os outros dois backends — mesma ressalva da nota acima: a v2 deste projeto usa `/v1/api`, não `/v2/api`. Padrão completo (envelope de resposta, autenticação de serviço, convenção de pastas): `docs/PADRAO-RESPOSTA-V3.md` e `AI-Friendly Architecture Specification.md` (raiz do workspace). Ler só quando a tarefa envolver `v3/`.
 
 ## Versionamento de rota é diferente dos outros dois projetos
 
