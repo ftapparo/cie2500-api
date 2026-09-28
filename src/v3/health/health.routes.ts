@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyReply } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import type { CieManager } from '../../core/cie-manager';
-import { successResponseSchema } from '../lib/response';
+import { successResponseSchema } from '../shared/response';
 
 // Reaproveita o mesmo snapshot que a v2 usa (CieManager.getStateService()),
 // health da v3 reflete o estado real da conexão com a central, não um

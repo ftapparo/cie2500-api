@@ -3,7 +3,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import type { CieManager } from '../../core/cie-manager';
 import { trimNulls } from '../../core/utils';
-import { successResponseSchema } from '../lib/response';
+import { successResponseSchema } from '../shared/response';
 import {
     alarmActiveSnapshotSchema,
     blockCountersSchema,
@@ -12,7 +12,7 @@ import {
     logTypeQuerySchema,
     outputCountersSchema,
     panelDataSchema,
-} from '../lib/cie-schemas';
+} from './cie.schema';
 
 const LOG_TYPES = ['alarme', 'falha', 'supervisao', 'operacao', 'bloqueio'] as const;
 
