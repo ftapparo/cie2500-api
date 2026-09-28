@@ -1,0 +1,275 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Nova CIE — v3",
+    "version": "3.0.0",
+    "description": "API v3 - Central de Incêndio Nova Residence"
+  },
+  "tags": [
+    {
+      "name": "Health",
+      "description": "Disponibilidade do serviço e status da conexão com a central."
+    }
+  ],
+  "components": {
+    "schemas": {
+      "ResponseMeta": {
+        "type": "object",
+        "description": "Metadado transversal presente em toda resposta, dentro ou fora do envelope de sucesso/erro.",
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Instante em que a resposta foi gerada.",
+            "example": "2026-09-28T03:44:40.342Z"
+          },
+          "requestId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Identificador da requisição, para correlação em logs e suporte.",
+            "example": "req-1"
+          },
+          "version": {
+            "type": "string",
+            "enum": ["v3"],
+            "description": "Versão da API que gerou a resposta."
+          },
+          "pagination": {
+            "type": "object",
+            "description": "Presente somente em endpoints que retornam uma coleção paginada.",
+            "properties": {
+              "limit": { "type": "integer", "minimum": 1, "example": 25 },
+              "offset": { "type": "integer", "minimum": 0, "example": 0 },
+              "total": { "type": "integer", "minimum": 0, "example": 137 }
+            },
+            "required": ["limit", "offset", "total"]
+          }
+        },
+        "required": ["timestamp", "requestId", "version"]
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "description": "Estrutura padrão de erro da API, com tipo, título, status HTTP e detalhe da ocorrência.",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "URN fixo identificando o tipo do erro (não é uma URL navegável).",
+            "example": "urn:nova-cie:validation-error"
+          },
+          "title": {
+            "type": "string",
+            "description": "Resumo legível do tipo de erro.",
+            "example": "Dados de entrada inválidos"
+          },
+          "status": {
+            "type": "integer",
+            "description": "Código HTTP correspondente, redundante com o status da resposta.",
+            "example": 400
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true,
+            "description": "Explicação específica desta ocorrência do erro.",
+            "example": "Um ou mais campos da requisição são inválidos."
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true,
+            "description": "Path da requisição que originou o erro.",
+            "example": "/v3/api/health"
+          },
+          "validationErrors": {
+            "type": "array",
+            "description": "Presente somente quando type = validation-error.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "path": { "type": "string", "example": "/name" },
+                "message": { "type": "string", "example": "Too small: expected string to have >=3 characters" }
+              },
+              "required": ["path", "message"]
+            }
+          }
+        },
+        "required": ["type", "title", "status", "detail", "instance"]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "enum": [false] },
+          "error": { "$ref": "#/components/schemas/ProblemDetails" },
+          "meta": { "$ref": "#/components/schemas/ResponseMeta" }
+        },
+        "required": ["success", "error", "meta"]
+      },
+      "HealthData": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["API Funcionando!"],
+            "example": "API Funcionando!"
+          },
+          "service": {
+            "type": "string",
+            "enum": ["CIE2500"],
+            "example": "CIE2500"
+          },
+          "health": {
+            "type": "string",
+            "enum": ["OK", "DEGRADED"],
+            "description": "OK quando conectado à central; DEGRADED caso contrário.",
+            "example": "OK"
+          },
+          "connected": {
+            "type": "boolean",
+            "description": "Estado atual da conexão TCP com a central.",
+            "example": true
+          },
+          "reconnecting": {
+            "type": "boolean",
+            "description": "Indica se uma tentativa de reconexão está em andamento.",
+            "example": false
+          },
+          "lastUpdated": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Timestamp Unix (ms) da última atualização de estado recebida da central.",
+            "example": 1758000000000
+          },
+          "lastError": {
+            "type": "string",
+            "nullable": true,
+            "description": "Última mensagem de erro de conexão registrada, se houver.",
+            "example": null
+          }
+        },
+        "required": ["status", "service", "health", "connected", "reconnecting", "lastUpdated", "lastError"]
+      },
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "enum": [true] },
+          "data": { "$ref": "#/components/schemas/HealthData" },
+          "meta": { "$ref": "#/components/schemas/ResponseMeta" }
+        },
+        "required": ["success", "data", "meta"]
+      }
+    },
+    "responses": {
+      "NotFound": {
+        "description": "Rota inexistente.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "success": false,
+              "error": {
+                "type": "urn:nova-cie:not-found",
+                "title": "Recurso não encontrado",
+                "status": 404,
+                "detail": "Rota GET /v3/api/rota-que-nao-existe não existe.",
+                "instance": "/v3/api/rota-que-nao-existe"
+              },
+              "meta": {
+                "timestamp": "2026-09-28T03:24:14.989Z",
+                "requestId": "req-2",
+                "version": "v3"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/v3/api/health": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Healthcheck do serviço",
+        "description": "Verifica disponibilidade da camada HTTP e o estado da conexão com a central de incêndio. Retorna 503 quando não conectado.",
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "Serviço conectado à central.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthResponse" },
+                "example": {
+                  "success": true,
+                  "data": { "status": "API Funcionando!", "service": "CIE2500", "health": "OK", "connected": true, "reconnecting": false, "lastUpdated": 1758000000000, "lastError": null },
+                  "meta": {
+                    "timestamp": "2026-09-28T03:44:40.342Z",
+                    "requestId": "req-1",
+                    "version": "v3"
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Serviço não conectado à central.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthResponse" },
+                "example": {
+                  "success": true,
+                  "data": { "status": "API Funcionando!", "service": "CIE2500", "health": "DEGRADED", "connected": false, "reconnecting": true, "lastUpdated": 1758000000000, "lastError": "connect ETIMEDOUT" },
+                  "meta": {
+                    "timestamp": "2026-09-28T03:44:40.342Z",
+                    "requestId": "req-1",
+                    "version": "v3"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v3/api/healthcheck": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Healthcheck do serviço (alias)",
+        "description": "Alias de /v3/api/health. Mesmo handler e resposta.",
+        "operationId": "getHealthcheck",
+        "responses": {
+          "200": {
+            "description": "Serviço conectado à central.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthResponse" },
+                "example": {
+                  "success": true,
+                  "data": { "status": "API Funcionando!", "service": "CIE2500", "health": "OK", "connected": true, "reconnecting": false, "lastUpdated": 1758000000000, "lastError": null },
+                  "meta": {
+                    "timestamp": "2026-09-28T03:44:40.342Z",
+                    "requestId": "req-1",
+                    "version": "v3"
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Serviço não conectado à central.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthResponse" },
+                "example": {
+                  "success": true,
+                  "data": { "status": "API Funcionando!", "service": "CIE2500", "health": "DEGRADED", "connected": false, "reconnecting": true, "lastUpdated": 1758000000000, "lastError": "connect ETIMEDOUT" },
+                  "meta": {
+                    "timestamp": "2026-09-28T03:44:40.342Z",
+                    "requestId": "req-1",
+                    "version": "v3"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

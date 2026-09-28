@@ -22,7 +22,7 @@ COPY --from=builder /app/dist ./dist
 # qualquer "docker history". As variaveis chegam em runtime, via Environment
 # variables da stack no Portainer.
 
-EXPOSE 4021
+EXPOSE 4021 3031
 
 ENV NODE_ENV=production
 

@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import { CieManager } from './core/cie-manager';
 import { StartWebServer } from './v2/api/web-server.api';
+import { StartWebServerV3 } from './v3/server';
 
 const dotenvResult = dotenv.config();
 if (dotenvResult.error) {
@@ -31,6 +32,16 @@ async function startService(): Promise<void> {
 
     // Inicia o servidor web e a conexão com a CIE em paralelo
     await StartWebServer(cieInstance);
+
+    // v3 (Fastify) — roda lado a lado da v2, porta propria, ainda em
+    // construcao. Falha aqui nao deve derrubar a v2, que ja atende
+    // producao.
+    try {
+      await StartWebServerV3(cieInstance);
+      console.log('[Server] WebServer v3 inicializado.');
+    } catch (v3Err) {
+      console.error('[Server] Falha ao iniciar a v3 (nao fatal, v2 segue operando):', v3Err);
+    }
 
     void cieInstance.connectToCie()
       .then(() => {
