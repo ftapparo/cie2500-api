@@ -31,6 +31,14 @@ export function registerServiceAuth(app: FastifyInstance) {
             return;
         }
 
+        // Swagger UI e o spec OpenAPI ficam fora do token de serviço: já
+        // são protegidos pela flag SWAGGER_V3_ENABLED (documentação de
+        // desenvolvimento, acessada manualmente por quem tem acesso à
+        // rede interna — não é uma chamada de negócio da nova-api).
+        if (request.url.startsWith('/v3/swagger') || request.url.startsWith('/v3/apispec_1.json')) {
+            return;
+        }
+
         if (!expectedToken) {
             request.log.error('[ServiceAuth] CIE_SERVICE_TOKEN não configurado — recusando toda chamada às rotas protegidas.');
             return reply.fail({
