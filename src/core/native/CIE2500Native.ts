@@ -1,10 +1,10 @@
 import { EventEmitter } from 'node:events';
-import type { NomeModelo, Mac, Info, Status, DataHora, BlockCounters, OutputCounters } from '../types/cie';
+import type { NomeModelo, Mac, Info, Status, DataHora, BlockCounters, OutputCounters } from '../../types/cie';
 
 // Ajuste os caminhos conforme onde você colocou os fontes da Intelbras
-const udpFactory = require('../intelbras/udp.js');
-const remoteOpperationFactory = require('../intelbras/remoteOpperation.js');
-const remoteConnectionFactory = require('../intelbras/remoteConnection.js');
+const udpFactory = require('../../intelbras/udp.js');
+const remoteOpperationFactory = require('../../intelbras/remoteOpperation.js');
+const remoteConnectionFactory = require('../../intelbras/remoteConnection.js');
 
 type Msg = { event: string; data?: any };
 

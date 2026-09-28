@@ -1,9 +1,9 @@
 import { EventEmitter } from 'node:events';
 import { spawn } from 'node:child_process';
-import type { CieClient } from '../core/cie-client';
+import type { CieClient } from '../cie-client';
 import type { CieLogService } from './cie-log.service';
-import type { CieHistoricLogType, CieLogType } from '../types/logs';
-import type { CieStateSnapshot } from '../types/state';
+import type { CieHistoricLogType, CieLogType } from '../../types/logs';
+import type { CieStateSnapshot } from '../../types/state';
 
 type CieStateServiceOptions = {
   pollMs: number;

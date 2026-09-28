@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
-import type { CieStateService } from '../services/cie-state.service';
-import type { CieLogService } from '../services/cie-log.service';
-import type { CieCommandService, CommandAction } from '../services/cie-command.service';
-import type { CieLogType } from '../types/logs';
-import { trimNulls } from '../utils';
+import type { CieStateService } from '../../core/services/cie-state.service';
+import type { CieLogService } from '../../core/services/cie-log.service';
+import type { CieCommandService, CommandAction } from '../../core/services/cie-command.service';
+import type { CieLogType } from '../../types/logs';
+import { trimNulls } from '../../core/utils';
 
 const LOG_TYPES: CieLogType[] = ['alarme', 'falha', 'supervisao', 'operacao', 'bloqueio'];
 

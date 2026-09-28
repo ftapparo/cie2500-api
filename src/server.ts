@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import { CieManager } from './core/cie-manager';
-import { StartWebServer } from './api/web-server.api';
+import { StartWebServer } from './v2/api/web-server.api';
 
 const dotenvResult = dotenv.config();
 if (dotenvResult.error) {

@@ -1,6 +1,6 @@
 import express from 'express';
 import { healthCheck } from '../controllers/health.controller';
-import { CieManager } from '../core/cie-manager';
+import { CieManager } from '../../core/cie-manager';
 
 export default (cieInstance: CieManager) => {
 

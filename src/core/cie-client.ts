@@ -1,5 +1,5 @@
-import { RequestQueue } from '../utils';
-import { CIE2500Native } from '../native/CIE2500Native';
+import { RequestQueue } from './utils';
+import { CIE2500Native } from './native/CIE2500Native';
 import type { BlockCounters, DataHora, Info, Mac, NomeModelo, OutputCounters, Status } from '../types/cie';
 import type { CieHistoricLogType } from '../types/logs';
 

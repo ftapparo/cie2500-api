@@ -1,10 +1,10 @@
 import http from 'http';
 import { CieClient } from './cie-client';
-import { CieCommandService } from '../services/cie-command.service';
-import { CieLogService } from '../services/cie-log.service';
-import { CieStateService } from '../services/cie-state.service';
-import { PushRelayService } from '../services/push-relay.service';
-import { CieWsBroker } from '../ws/cie-ws-broker';
+import { CieCommandService } from './services/cie-command.service';
+import { CieLogService } from './services/cie-log.service';
+import { CieStateService } from './services/cie-state.service';
+import { PushRelayService } from './services/push-relay.service';
+import { CieWsBroker } from './ws/cie-ws-broker';
 
 export type CieManagerConfig = {
   name: string;

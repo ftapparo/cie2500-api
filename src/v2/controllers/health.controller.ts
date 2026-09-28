@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import type { CieManager } from '../core/cie-manager';
+import type { CieManager } from '../../core/cie-manager';
 
 export const healthCheck = (_req: Request, res: Response, cieInstance: CieManager) => {
   const snap = cieInstance.getStateService().getSnapshot();

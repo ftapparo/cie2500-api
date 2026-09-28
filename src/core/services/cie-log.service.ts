@@ -1,5 +1,5 @@
 import { trimNulls } from '../utils';
-import type { AlarmActiveSnapshot, CieDeviceClassification, CieLogType, NormalizedCieLog } from '../types/logs';
+import type { AlarmActiveSnapshot, CieDeviceClassification, CieLogType, NormalizedCieLog } from '../../types/logs';
 
 type ListOptions = {
   type?: CieLogType;

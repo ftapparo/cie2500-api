@@ -7,7 +7,7 @@ import swaggerDocument from '../swagger.json';
 import healthRoutes from '../routes/health.routes';
 import cieRoutes from '../routes/cie.routes';
 import { responseHandler } from '../middleware/response-handler';
-import { CieManager } from '../core/cie-manager';
+import { CieManager } from '../../core/cie-manager';
 import { requestContextMiddleware } from '../middleware/request-context';
 
 const swaggerUiOptions = {

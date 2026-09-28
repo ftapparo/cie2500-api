@@ -11,7 +11,7 @@ import {
   listLogsWithWarmupGuard,
   reconnectConnection,
 } from '../controllers/cie.controller';
-import type { CieManager } from '../core/cie-manager';
+import type { CieManager } from '../../core/cie-manager';
 
 export default function cieRoutes(cieInstance: CieManager) {
   const router = Router();

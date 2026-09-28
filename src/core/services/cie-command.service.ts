@@ -1,4 +1,4 @@
-import type { CieClient } from '../core/cie-client';
+import type { CieClient } from '../cie-client';
 
 export type CommandAction =
   | 'silence'
