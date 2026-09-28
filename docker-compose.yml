@@ -26,6 +26,7 @@ services:
       - TZ=America/Sao_Paulo
       - PORT_V3=${PORT_V3}
       - SWAGGER_V3_ENABLED=${SWAGGER_V3_ENABLED}
+      - CIE_SERVICE_TOKEN=${CIE_SERVICE_TOKEN}
       - CIE_IP=${CIE_IP}
       - CIE_PASSWORD=${CIE_PASSWORD}
       - CIE_ENDERECO=${CIE_ENDERECO}

@@ -4,7 +4,9 @@ import fastifySwaggerUi from '@fastify/swagger-ui';
 import { serializerCompiler, validatorCompiler, type ZodTypeProvider } from 'fastify-type-provider-zod';
 import type { CieManager } from '../core/cie-manager';
 import { healthRoutes } from './routes/health.routes';
+import { cieRoutes } from './routes/cie.routes';
 import { registerErrorHandler, responseHelpersPlugin } from './lib/reply-helpers';
+import { registerServiceAuth } from './lib/service-auth';
 import openapiDocument from './openapi.json';
 
 /**
@@ -34,6 +36,12 @@ export async function StartWebServerV3(cieInstance: CieManager): Promise<void> {
     await app.register(responseHelpersPlugin);
     registerErrorHandler(app);
 
+    // Autenticação de serviço: só a nova-api (rede interna) conhece
+    // CIE_SERVICE_TOKEN e pode chamar estas rotas. Autorização por
+    // usuário/role continua sendo decidida na nova-api antes de repassar
+    // a chamada — ver src/v3/lib/service-auth.ts.
+    registerServiceAuth(app);
+
     // Flag própria da v3. Spec escrito à mão em openapi.json, servido em
     // mode: 'static' — mesmo padrão de nova-api/nova-tag (ver
     // docs/PADRAO-RESPOSTA-V3.md).
@@ -56,6 +64,7 @@ export async function StartWebServerV3(cieInstance: CieManager): Promise<void> {
     await app.register(async (instance) => {
         instance.withTypeProvider<ZodTypeProvider>();
         await healthRoutes(instance, cieInstance);
+        await cieRoutes(instance, cieInstance);
     }, { prefix: '/v3/api' });
 
     const port = Number(process.env.PORT_V3 || 3031);

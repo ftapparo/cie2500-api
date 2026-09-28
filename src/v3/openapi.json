@@ -9,9 +9,21 @@
     {
       "name": "Health",
       "description": "Disponibilidade do serviço e status da conexão com a central."
+    },
+    {
+      "name": "CIE",
+      "description": "Consulta de estado, painel, alarmes, logs e contadores da central de incêndio."
     }
   ],
+  "security": [{ "ServiceToken": [] }],
   "components": {
+    "securitySchemes": {
+      "ServiceToken": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Token de serviço compartilhado entre a nova-api e este projeto. Não é um token de usuário final — autorização por usuário/papel é decidida pela nova-api antes de repassar a chamada."
+      }
+    },
     "schemas": {
       "ResponseMeta": {
         "type": "object",
@@ -154,6 +166,196 @@
           "meta": { "$ref": "#/components/schemas/ResponseMeta" }
         },
         "required": ["success", "data", "meta"]
+      },
+      "NomeModelo": {
+        "type": "object",
+        "properties": {
+          "endereco": { "type": "integer" },
+          "nome": { "type": "string" },
+          "modelo": { "type": "string" }
+        },
+        "required": ["endereco", "nome", "modelo"]
+      },
+      "DataHora": {
+        "type": "object",
+        "properties": {
+          "timestamp": { "type": "integer", "description": "Milissegundos desde 1970." },
+          "utc": { "type": "string", "format": "date-time" },
+          "local": { "type": "string", "description": "Data/hora amigável no fuso local." }
+        },
+        "required": ["timestamp", "utc", "local"]
+      },
+      "StatusCounters": {
+        "type": "object",
+        "properties": {
+          "alarme": { "type": "integer" },
+          "falha": { "type": "integer" },
+          "supervisao": { "type": "integer" },
+          "bloqueio": { "type": "integer" },
+          "regrasTemporizando": { "type": "integer" }
+        },
+        "required": ["alarme", "falha", "supervisao", "bloqueio", "regrasTemporizando"]
+      },
+      "CieStateSnapshot": {
+        "type": "object",
+        "description": "Estado bruto mantido internamente a partir do último polling da central.",
+        "properties": {
+          "connected": { "type": "boolean" },
+          "restartingUntil": { "type": "integer", "nullable": true },
+          "nomeModelo": { "allOf": [{ "$ref": "#/components/schemas/NomeModelo" }], "nullable": true },
+          "mac": { "type": "object", "nullable": true, "properties": { "mac": { "type": "string" } } },
+          "info": { "type": "object", "nullable": true, "additionalProperties": { "type": "integer" } },
+          "dataHora": { "allOf": [{ "$ref": "#/components/schemas/DataHora" }], "nullable": true },
+          "status": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "status": { "$ref": "#/components/schemas/StatusCounters" },
+              "leds": { "type": "object", "additionalProperties": { "type": "boolean" } }
+            }
+          },
+          "lastUpdated": { "type": "integer", "nullable": true },
+          "lastError": { "type": "string", "nullable": true },
+          "reconnecting": { "type": "boolean" },
+          "reconnectAttempt": { "type": "integer" }
+        },
+        "required": ["connected", "restartingUntil", "nomeModelo", "mac", "info", "dataHora", "status", "lastUpdated", "lastError", "reconnecting", "reconnectAttempt"]
+      },
+      "PanelData": {
+        "type": "object",
+        "description": "Visão consolidada do estado da central para exibição em painel/app.",
+        "properties": {
+          "online": { "type": "boolean" },
+          "connected": { "type": "boolean" },
+          "restarting": { "type": "boolean" },
+          "restartingUntil": { "type": "integer", "nullable": true },
+          "reconnecting": { "type": "boolean" },
+          "reconnectAttempt": { "type": "integer" },
+          "lastError": { "type": "string", "nullable": true },
+          "lastUpdated": { "type": "integer", "nullable": true },
+          "central": {
+            "type": "object",
+            "properties": {
+              "ip": { "type": "string", "nullable": true },
+              "endereco": { "type": "integer" },
+              "nome": { "type": "string", "nullable": true },
+              "modelo": { "type": "string", "nullable": true },
+              "mac": { "type": "string", "nullable": true }
+            },
+            "required": ["ip", "endereco", "nome", "modelo", "mac"]
+          },
+          "dataHora": { "allOf": [{ "$ref": "#/components/schemas/DataHora" }], "nullable": true },
+          "counters": { "allOf": [{ "$ref": "#/components/schemas/StatusCounters" }], "nullable": true },
+          "leds": { "type": "object", "nullable": true, "additionalProperties": { "type": "boolean" } },
+          "latestFailureEvent": { "allOf": [{ "$ref": "#/components/schemas/NormalizedCieLog" }], "nullable": true },
+          "latestAlarmEvent": { "allOf": [{ "$ref": "#/components/schemas/NormalizedCieLog" }], "nullable": true }
+        },
+        "required": ["online", "connected", "restarting", "restartingUntil", "reconnecting", "reconnectAttempt", "lastError", "lastUpdated", "central", "dataHora", "counters", "leds", "latestFailureEvent", "latestAlarmEvent"]
+      },
+      "DeviceClassification": {
+        "type": "object",
+        "properties": {
+          "typeCode": { "type": "integer", "nullable": true },
+          "subtypeCode": { "type": "integer", "nullable": true },
+          "typeLabel": { "type": "string", "nullable": true },
+          "subtypeLabel": { "type": "string", "nullable": true },
+          "resolvedLabel": { "type": "string", "nullable": true },
+          "source": { "type": "string", "enum": ["codes", "name", "none"] }
+        },
+        "required": ["typeCode", "subtypeCode", "typeLabel", "subtypeLabel", "resolvedLabel", "source"]
+      },
+      "NormalizedCieLog": {
+        "type": "object",
+        "properties": {
+          "key": { "type": "string" },
+          "type": { "type": "string", "enum": ["alarme", "falha", "supervisao", "operacao", "bloqueio"] },
+          "id": { "type": "integer" },
+          "zone": { "type": "integer", "nullable": true },
+          "address": { "type": "integer", "nullable": true },
+          "loop": { "type": "integer", "nullable": true },
+          "deviceName": { "type": "string", "nullable": true },
+          "zoneName": { "type": "string", "nullable": true },
+          "deviceTypeCode": { "type": "integer", "nullable": true },
+          "deviceTypeLabel": { "type": "string", "nullable": true },
+          "deviceClassification": { "allOf": [{ "$ref": "#/components/schemas/DeviceClassification" }], "nullable": true },
+          "eventType": { "type": "integer", "nullable": true },
+          "blocked": { "type": "boolean", "nullable": true },
+          "occurredAt": { "type": "string", "format": "date-time" },
+          "createdAt": { "type": "integer" }
+        },
+        "required": ["key", "type", "id", "zone", "address", "loop", "deviceName", "zoneName", "deviceTypeCode", "deviceTypeLabel", "deviceClassification", "eventType", "blocked", "occurredAt", "createdAt"]
+      },
+      "AlarmActiveSnapshot": {
+        "type": "object",
+        "properties": {
+          "isTriggered": { "type": "boolean" },
+          "counters": {
+            "type": "object",
+            "properties": {
+              "alarme": { "type": "integer" },
+              "falha": { "type": "integer" },
+              "supervisao": { "type": "integer" },
+              "bloqueio": { "type": "integer" }
+            },
+            "required": ["alarme", "falha", "supervisao", "bloqueio"]
+          },
+          "latestAlarmLogs": { "type": "array", "items": { "$ref": "#/components/schemas/NormalizedCieLog" } }
+        },
+        "required": ["isTriggered", "counters", "latestAlarmLogs"]
+      },
+      "LogsListData": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "example": "alarme" },
+          "limit": { "type": "integer", "example": 50 },
+          "cursor": { "type": "string", "nullable": true },
+          "nextCursor": { "type": "string", "nullable": true },
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/NormalizedCieLog" } }
+        },
+        "required": ["type", "limit", "cursor", "nextCursor", "items"]
+      },
+      "BlockCounters": {
+        "type": "object",
+        "description": "Contadores de dispositivos configurados para bloqueio, por tipo e laço.",
+        "properties": {
+          "dispositivo": { "type": "integer" },
+          "sirene": { "type": "integer" },
+          "saida": { "type": "integer" },
+          "atuador": { "type": "integer" },
+          "regra": { "type": "integer" },
+          "zona": { "type": "integer" },
+          "laco": { "type": "integer" },
+          "dispositivoLaco0": { "type": "integer" },
+          "dispositivoLaco1": { "type": "integer" },
+          "dispositivoLaco2": { "type": "integer" },
+          "saidaLaco0": { "type": "integer" },
+          "saidaLaco1": { "type": "integer" },
+          "saidaLaco2": { "type": "integer" },
+          "sireneLaco0": { "type": "integer" },
+          "sireneLaco1": { "type": "integer" },
+          "sireneLaco2": { "type": "integer" },
+          "atuadorLaco0": { "type": "integer" },
+          "atuadorLaco1": { "type": "integer" },
+          "atuadorLaco2": { "type": "integer" }
+        }
+      },
+      "OutputCounters": {
+        "type": "object",
+        "description": "Contadores de saídas configuradas, por tipo e laço.",
+        "properties": {
+          "saidaLaco0": { "type": "integer" },
+          "saidaLaco1": { "type": "integer" },
+          "saidaLaco2": { "type": "integer" },
+          "sireneLaco0": { "type": "integer" },
+          "sireneLaco1": { "type": "integer" },
+          "sireneLaco2": { "type": "integer" },
+          "atuadorLaco0": { "type": "integer" },
+          "atuadorLaco1": { "type": "integer" },
+          "atuadorLaco2": { "type": "integer" },
+          "saida": { "type": "integer" },
+          "sirene": { "type": "integer" },
+          "atuador": { "type": "integer" }
+        }
       }
     },
     "responses": {
@@ -179,6 +381,29 @@
             }
           }
         }
+      },
+      "Unauthorized": {
+        "description": "Token de serviço ausente ou inválido.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "success": false,
+              "error": {
+                "type": "urn:nova-cie:unauthorized",
+                "title": "Autenticação necessária",
+                "status": 401,
+                "detail": "Token de serviço ausente ou inválido.",
+                "instance": "/v3/api/cie/status"
+              },
+              "meta": {
+                "timestamp": "2026-09-28T03:24:14.989Z",
+                "requestId": "req-3",
+                "version": "v3"
+              }
+            }
+          }
+        }
       }
     }
   },
@@ -189,6 +414,7 @@
         "summary": "Healthcheck do serviço",
         "description": "Verifica disponibilidade da camada HTTP e o estado da conexão com a central de incêndio. Retorna 503 quando não conectado.",
         "operationId": "getHealth",
+        "security": [],
         "responses": {
           "200": {
             "description": "Serviço conectado à central.",
@@ -233,6 +459,7 @@
         "summary": "Healthcheck do serviço (alias)",
         "description": "Alias de /v3/api/health. Mesmo handler e resposta.",
         "operationId": "getHealthcheck",
+        "security": [],
         "responses": {
           "200": {
             "description": "Serviço conectado à central.",
@@ -268,6 +495,175 @@
               }
             }
           }
+        }
+      }
+    },
+    "/v3/api/cie/status": {
+      "get": {
+        "tags": ["CIE"],
+        "summary": "Estado bruto da central",
+        "description": "Retorna o último snapshot de estado mantido internamente a partir do polling da central.",
+        "operationId": "getCieStatus",
+        "responses": {
+          "200": {
+            "description": "Snapshot atual.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/HealthResponse" },
+                    { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/CieStateSnapshot" } } }
+                  ]
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/v3/api/cie/panel": {
+      "get": {
+        "tags": ["CIE"],
+        "summary": "Painel consolidado da central",
+        "description": "Retorna uma visão agregada do estado da central (conexão, contadores, último alarme/falha), pronta para exibição em painel ou app.",
+        "operationId": "getCiePanel",
+        "responses": {
+          "200": {
+            "description": "Painel atual.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/HealthResponse" },
+                    { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/PanelData" } } }
+                  ]
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/v3/api/cie/alarms/active": {
+      "get": {
+        "tags": ["CIE"],
+        "summary": "Alarmes ativos",
+        "description": "Retorna se há alarme disparado no momento, os contadores por tipo de evento e os últimos registros de alarme.",
+        "operationId": "getActiveAlarms",
+        "responses": {
+          "200": {
+            "description": "Estado de alarme atual.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/HealthResponse" },
+                    { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/AlarmActiveSnapshot" } } }
+                  ]
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/v3/api/cie/logs": {
+      "get": {
+        "tags": ["CIE"],
+        "summary": "Lista de logs da central",
+        "description": "Retorna eventos registrados pela central, com paginação por cursor e filtro opcional por tipo.",
+        "operationId": "listCieLogs",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "description": "Filtra por tipo de evento. Omitido retorna todos os tipos.",
+            "schema": { "type": "string", "enum": ["alarme", "falha", "supervisao", "operacao", "bloqueio"] }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Quantidade máxima de itens retornados (1 a 200).",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 200, "default": 50 }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "description": "Cursor de paginação retornado por uma chamada anterior (campo nextCursor).",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página de logs.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/HealthResponse" },
+                    { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/LogsListData" } } }
+                  ]
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/v3/api/cie/counters/blocks": {
+      "get": {
+        "tags": ["CIE"],
+        "summary": "Contadores de bloqueio",
+        "description": "Retorna a quantidade de dispositivos, saídas, sirenes e atuadores configurados para bloqueio, por laço.",
+        "operationId": "getBlockCounters",
+        "responses": {
+          "200": {
+            "description": "Contadores atuais.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/HealthResponse" },
+                    { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/BlockCounters" } } }
+                  ]
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "502": { "description": "Falha ao consultar a central." }
+        }
+      }
+    },
+    "/v3/api/cie/counters/outputs": {
+      "get": {
+        "tags": ["CIE"],
+        "summary": "Contadores de saída",
+        "description": "Retorna a quantidade de saídas, sirenes e atuadores configurados, por laço.",
+        "operationId": "getOutputCounters",
+        "responses": {
+          "200": {
+            "description": "Contadores atuais.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/HealthResponse" },
+                    { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/OutputCounters" } } }
+                  ]
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "502": { "description": "Falha ao consultar a central." }
         }
       }
     }
