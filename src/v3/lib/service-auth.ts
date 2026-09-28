@@ -52,7 +52,7 @@ export function registerServiceAuth(app: FastifyInstance) {
         if (!token || token !== expectedToken) {
             return reply.fail({
                 type: 'unauthorized',
-                detail: 'Token de serviço ausente ou inválido.',
+                detail: 'Não autorizado.',
                 instance: request.url,
             });
         }

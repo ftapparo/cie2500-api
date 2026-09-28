@@ -9,10 +9,11 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 ### Adicionado
 - Rotas de leitura do CIE migradas para a v3 (`GET /v3/api/cie/status`, `/panel`, `/alarms/active`, `/logs`, `/counters/blocks`, `/counters/outputs`), reaproveitando os mesmos serviços de `core/` que a v2 usa (`CieStateService`, `CieLogService`, `CieCommandService`), sem duplicar lógica de negócio. Schemas Zod completos em `src/v3/lib/cie-schemas.ts`.
 - Autenticação de serviço na v3 (`src/v3/lib/service-auth.ts`): todas as rotas protegidas (exceto `/v3/api/health` e `/healthcheck`) exigem `Authorization: Bearer <CIE_SERVICE_TOKEN>`. Só a `nova-api` (rede interna) deve conhecer esse segredo — autorização por usuário/papel continua sendo decidida na `nova-api` antes de repassar a chamada, o CIE só verifica a origem da requisição.
-- Documentação Swagger das 6 rotas de leitura adicionada em `src/v3/openapi.json` (`securityScheme` `ServiceToken`, tag `CIE`).
+- Documentação Swagger das 6 rotas de leitura adicionada em `src/v3/openapi.json` (`securityScheme` `ApiToken`, tag `CIE`).
 
 ### Corrigido
-- Swagger UI (`/v3/swagger`) e o spec (`/v3/apispec_1.json`) exigiam indevidamente o `CIE_SERVICE_TOKEN` — o hook de autenticação de serviço isentava só `/v3/api/health`, não a documentação. Ambos já são protegidos pela flag `SWAGGER_V3_ENABLED`; agora ficam explicitamente fora da verificação de token.
+- Swagger UI (`/v3/swagger`) e o spec (`/v3/apispec_1.json`) exigiam indevidamente o token de acesso — o hook de autenticação de serviço isentava só `/v3/api/health`, não a documentação. Ambos já são protegidos pela flag `SWAGGER_V3_ENABLED`; agora ficam explicitamente fora da verificação de token.
+- Descrição do `securityScheme` e mensagens de erro 401 no spec público detalhavam o mecanismo interno de autenticação (nome do token, projetos envolvidos) — reduzidas a texto genérico, já que o spec é documentação pública exposta via Swagger UI.
 
 ### Alterado
 - Reorganização estrutural do código: `controllers/`, `routes/`, `middleware/` e `api/` movidos para `src/v2/` (camada Express atual, sem mudança de comportamento). `services/`, `ws/`, `native/`, `config.ts` e `utils.ts` movidos para dentro de `src/core/`, junto do driver real da central (`cie-client`, `cie-manager`), que já vivia em `core/`. `CieManager` já era agnóstico de framework HTTP (recebe um `http.Server` via `bindWebSocket`) — preparação para uma futura v2 de API (este projeto usa `/v1/api` hoje) que compartilhará a mesma conexão TCP com a central, o WebSocket broker e os serviços de estado/comando/log. `src/intelbras/` (SDK vendorizado do fabricante) não foi tocado.

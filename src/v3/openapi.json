@@ -15,13 +15,13 @@
       "description": "Consulta de estado, painel, alarmes, logs e contadores da central de incêndio."
     }
   ],
-  "security": [{ "ServiceToken": [] }],
+  "security": [{ "ApiToken": [] }],
   "components": {
     "securitySchemes": {
-      "ServiceToken": {
+      "ApiToken": {
         "type": "http",
         "scheme": "bearer",
-        "description": "Token de serviço compartilhado entre a nova-api e este projeto. Não é um token de usuário final — autorização por usuário/papel é decidida pela nova-api antes de repassar a chamada."
+        "description": "Token de acesso à API."
       }
     },
     "schemas": {
@@ -383,7 +383,7 @@
         }
       },
       "Unauthorized": {
-        "description": "Token de serviço ausente ou inválido.",
+        "description": "Não autorizado.",
         "content": {
           "application/json": {
             "schema": { "$ref": "#/components/schemas/ErrorResponse" },
@@ -393,7 +393,7 @@
                 "type": "urn:nova-cie:unauthorized",
                 "title": "Autenticação necessária",
                 "status": 401,
-                "detail": "Token de serviço ausente ou inválido.",
+                "detail": "Não autorizado.",
                 "instance": "/v3/api/cie/status"
               },
               "meta": {
