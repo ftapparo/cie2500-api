@@ -1,34 +1,65 @@
-# cie2500-api
+# cie2500-api (nova-cie)
 
-API de integração com a central de incêndio Intelbras CIE2500 (Condomínio Nova Residence). Node + TypeScript + Express 5.
+Microserviço de integração com a central de incêndio Intelbras CIE2500 do Condomínio Nova Residence. Comunicação direta via socket com a central, REST + WebSocket, relay de alarme/falha para a `nova-api` (que envia Web Push aos moradores).
 
-## Comandos
-- `npm run dev` — dev com `ts-node-dev` (usa `.env`), porta 4021.
-- `npm run build` / `npm start` — compila para `dist/` e roda `dist/server.js`.
-- Swagger em `/swagger`.
+Veja `README.md` para visão completa (endpoints, WebSocket, runbook de campo) e `CHANGELOG.md` para o histórico. Este arquivo é o contexto operacional para trabalhar no código.
 
 ## Arquitetura
-- Todas as rotas ficam sob o prefixo **`/v1/api`** (`/health`, `/cie/panel`, `/cie/status`, `/cie/alarms/active`, `/cie/logs`, `/cie/counters/*`, `/cie/commands/*`).
-- `src/services/`: `cie-state` (polling/estado da central), `cie-log` (ring buffer de logs, normalização), `cie-command` (comandos), `push-relay` (push para a API principal, com cooldown).
-- Botões dos comandos e cooldowns são configurados por env (`CIE_CMD_*`, `CIE_PUSH_*`); ver `.env.example`.
-- `/cie/panel` devolve `latestFailureEvent` e `latestAlarmEvent`; o front usa os dois.
 
-## Fluxo em produção
-front (`nova-front`, container :8080) → `nova-api` (container :3030, `/v2/api/cie/*`, gateway em `CIE_GATEWAY_BASE_URL`) → esta API (container `nova-cie` :4021) → central `192.168.0.4`.
-O push de alarme/falha vai para `MAIN_API_BASE_URL` (`/v2/api/push/send`) e chega em **usuários reais**.
+```
+src/
+  core/              # lógica de negócio, sem framework HTTP
+    cie-client.ts    # protocolo de baixo nível com a central (socket) — instância ÚNICA
+    cie-manager.ts   # orquestra client, services e WebSocket broker
+    services/        # cie-state, cie-command, cie-log, push-relay
+    ws/              # WebSocket broker — recebe um http.Server externo via bindWebSocket()
+    native/          # binding sobre o SDK vendorizado da Intelbras (CIE2500Native.ts)
+    utils.ts, config.ts
 
-## Cuidados ao testar neste servidor
-- O container `nova-cie` ocupa a porta 4021 (e UDP 12345-12347). Para rodar `npm run dev` é preciso **parar o container** (`docker stop nova-cie`) e religar depois (`docker start nova-cie`). Isso tira a integração de produção do ar.
-- Os comandos `POST /cie/commands/*` agem na central real (sirene, alarme geral, reinício). Não disparar sem combinar com o usuário.
-- Disparo de alarme e falha geram push real para moradores (cooldown de 60 s por tipo).
-- Falhas/alarmes são testados fisicamente (desconectar/acionar botoeira), sem comando de API.
+  v2/                # API REST (Express) — apesar do nome, expõe /v1/api (não v2/api)
+    api/, controllers/, routes/, middleware/
 
-## Fuso horário
-A central envia data/hora local de Brasília. `cie-log.service.ts` converte com deslocamento fixo UTC-3 (`localCieTimeToIso`), independente do `TZ` do processo; o compose também define `TZ=America/Sao_Paulo`. Não voltar a usar `new Date(y, m, d, ...)` para essas datas (o container roda em UTC e o horário aparecia 3 h a menos).
+  intelbras/         # SDK original do fabricante — NÃO MODIFICAR, é vendor code
+```
 
-## Mocks
-`mock/` guarda respostas reais dos GETs em três cenários: `normal-*`, `falha-*` (botoeira desconectada) e `disparo-*` (botoeira acionada).
+**Regra crítica**: existe uma única conexão física com a central por processo. `CieManager` é criado uma vez em `server.ts`, é agnóstico de framework HTTP (`bindWebSocket(server)` recebe qualquer `http.Server`) — se uma futura camada de API for adicionada, ela deve reutilizar a mesma instância, nunca criar uma segunda conexão com a central.
+
+## Versionamento de rota é diferente dos outros dois projetos
+
+Este projeto expõe `/v1/api` e `/v1/ws`, **não** `/v2/api` como `nova-api` e `nova-tag`. A pasta interna se chama `v2/` por convenção com os outros repositórios (mesma reorganização core/v2 aplicada aos três), mas isso não implica mudança no path público. Não confundir ao adicionar rotas ou ao integrar com o front/mobile.
+
+## `src/intelbras/` é vendor code
+
+SDK original do fabricante Intelbras (`ProgramadorCIE`, utilitários de protocolo TCP/UDP). Não editar esses arquivos — se precisar mudar comportamento, fazer isso em `core/native/CIE2500Native.ts`, que é o binding próprio sobre o SDK. O `tsconfig.json` exclui explicitamente partes dessa pasta do build (`ProgramadorCIE/**`, `CIE_USB.js`, `connectionController.js`).
+
+## Comandos da central são configuráveis por env var
+
+Cada ação (silenciar, liberar, reiniciar, sirenes) é mapeada para um par `botão + parâmetro` específico do protocolo Intelbras, configurável via `CIE_CMD_*_BUTTON`/`CIE_CMD_*_PARAM`. Ver `.env.example` para o mapeamento oficial documentado (referência: software `ProgramadorCIE`). Nunca hardcodar esses números no código — sempre vêm de env var, porque podem variar por instalação/central.
+
+## Stack
+
+Node.js 20 + TypeScript, Express, `ws` (WebSocket), `net`/`dgram` (socket com a central), axios (relay de push).
+
+## Comandos
+
+```bash
+npm run build
+npm run dev
+npm start
+npx tsc --noEmit
+```
+
+Sem suíte de testes automatizados — validação é o runbook de campo (ver README.md), sempre contra a central física ou em ambiente de homologação com central real.
 
 ## Convenções
-- Commits em português no estilo `feat:` / `fix:` / `chore:`.
-- Push direto na `main`.
+
+- Horário da central é interpretado como UTC-3, independente do fuso do processo/host — não assumir `Date` local sem checar essa conversão.
+- Relay de push (`services/push-relay.service.ts`) é assíncrono e não bloqueia o loop principal — nunca fazer `await` direto no caminho crítico de leitura de estado da central.
+- Cooldown de notificação (`CIE_PUSH_FIRE_ALARM_COOLDOWN_MS`, `CIE_PUSH_FAILURE_ALARM_COOLDOWN_MS`) existe para evitar flood — respeitar ao adicionar novos gatilhos de notificação.
+- `CIE_DISCOVERY_ENABLED` e `CIE_RESTART_WATCHDOG_ENABLED` devem ficar `false` em Docker no Windows (recomendação documentada, já causou instabilidade quando ligados).
+
+## Outros serviços do ecossistema
+
+- `nova-api`: recebe o relay de push em `POST {MAIN_API_BASE_URL}/v2/api/push/events/fire-alarm`.
+- `nova-tag`: sem relação direta.
+- `FRONT`: consome esta API indiretamente via `nova-api` (gateway `/v2/api/cie/*`), não diretamente.
