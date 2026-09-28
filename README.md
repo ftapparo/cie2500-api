@@ -2,6 +2,27 @@
 
 Microservico REST + WebSocket para integracao com central de incendio Intelbras CIE2500.
 
+## Arquitetura
+
+```
+src/
+  core/              # logica de negocio e integracoes, sem framework HTTP
+    cie-client.ts    # protocolo de baixo nivel com a central (socket)
+    cie-manager.ts   # orquestra client, servicos e WebSocket broker
+    services/        # estado, comando, log, relay de push
+    ws/              # WebSocket broker (recebe um http.Server externo)
+    native/           # binding sobre o SDK vendorizado da Intelbras
+    utils.ts, config.ts
+
+  v2/                # API REST atual (Express) — apesar do nome da pasta,
+                      # as rotas continuam expostas em /v1/api (ver abaixo)
+    api/, controllers/, routes/, middleware/
+
+  intelbras/         # SDK vendorizado do fabricante (nao modificar)
+```
+
+`CieManager` e agnostico de framework HTTP: recebe um `http.Server` externo via `bindWebSocket()` para o WebSocket, e e criado uma unica vez no `server.ts`. Isso permite que uma futura camada de API rode lado a lado com a atual no mesmo processo, compartilhando a mesma conexao TCP com a central — que so pode existir uma vez por processo.
+
 ## Endpoints REST
 
 Base: `/v1/api`
@@ -129,3 +150,7 @@ Observacoes para Docker no Windows:
 - ajustar `CIE_CMD_RESTART_*`;
 - chamar `POST /v1/api/cie/commands/restart`;
 - validar transicao de conexao e retorno da comunicacao.
+
+## Changelog
+
+Consulte o [CHANGELOG.md](CHANGELOG.md).
