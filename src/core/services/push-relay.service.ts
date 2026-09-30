@@ -102,12 +102,34 @@ export class PushRelayService {
     return false;
   }
 
+  /**
+   * Com MAIN_API_V3_BASE_URL definida (ex.: http://nova-api:3031), envia pela
+   * v3 da nova-api, autenticado por API_SERVICE_TOKEN; sem ela, segue na v2
+   * como sempre. Lido a cada envio para trocar só com variável + restart.
+   */
+  private resolveTarget(requestId: string): { endpoint: string; headers: Record<string, string> } {
+    const v3BaseUrl = normalizeBaseUrl(String(process.env.MAIN_API_V3_BASE_URL || ''));
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'x-request-id': requestId,
+    };
+
+    if (v3BaseUrl) {
+      return {
+        endpoint: `${v3BaseUrl}/v3/api/push/send`,
+        headers: { ...headers, Authorization: `Bearer ${process.env.API_SERVICE_TOKEN ?? ''}` },
+      };
+    }
+
+    return { endpoint: `${this.baseUrl}/v2/api/push/send`, headers: { ...headers, 'x-user': 'CIE' } };
+  }
+
   private async postGenericPush(
     requestId: string,
     payload: Record<string, unknown>,
     kind: 'fire-alarm' | 'failure-alarm',
   ): Promise<void> {
-    const endpoint = `${this.baseUrl}/v2/api/push/send`;
+    const { endpoint, headers } = this.resolveTarget(requestId);
     let lastError: unknown = null;
 
     for (let attempt = 1; attempt <= this.retries; attempt += 1) {
@@ -118,11 +140,7 @@ export class PushRelayService {
       try {
         const response = await fetch(endpoint, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-request-id': requestId,
-            'x-user': 'CIE',
-          },
+          headers,
           body: JSON.stringify(payload),
           signal: controller.signal,
         });

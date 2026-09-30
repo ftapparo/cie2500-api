@@ -7,6 +7,7 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 ## [Unreleased]
 
 ### Adicionado
+- Push de alarme/falha pode ir para a v3 da `nova-api`: com `MAIN_API_V3_BASE_URL` definida (ex.: `http://nova-api:3031`), o relay envia para `/v3/api/push/send` autenticado por `API_SERVICE_TOKEN`. Sem a variável, segue em `/v2/api/push/send` como sempre (padrão). `MAIN_API_BASE_URL` continua sendo a chave que liga o relay.
 - Comandos da central na v3 (`src/v3/cie/cie.commands.routes.ts`): `POST /v3/api/cie/commands/:action` (as 10 ações de botão da v2), `/commands/block`, `/commands/output` e `/connection/reconnect`. Mesma regra de negócio da v2 sobre os mesmos serviços de `core/`; corpo validado por Zod; `alarm-general` e `restart` exigem `{ "confirm": true }`; central recusando o comando responde `409`. Registra no log o ator repassado pela `nova-api` (`x-actor-id`/`x-actor-role`). A v2 não foi alterada.
 - WebSocket `/v3/ws` no servidor da v3, com os mesmos eventos do `/v1/ws`: exige `CIE_SERVICE_TOKEN` no upgrade (401 antes do handshake), limite de conexões (`CIE_WS_V3_MAX_CLIENTS`, padrão 5, excedente recebe 503), heartbeat de 30 s e `meta.version: "v3"` nas mensagens. Consumidor previsto: só a `nova-api` pela rede interna. O `/v1/ws` segue como estava.
 
