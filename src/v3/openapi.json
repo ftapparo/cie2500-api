@@ -3,7 +3,7 @@
   "info": {
     "title": "Nova CIE — v3",
     "version": "3.0.0",
-    "description": "API v3 - Central de Incêndio Nova Residence"
+    "description": "API v3 - Central de Incêndio Nova Residence\n\nEventos em tempo real: WebSocket em `/v3/ws` (mesma autenticação das rotas). Mensagens `{ event, timestamp, data, meta: { version: \"v3\" } }` com os eventos `connection.established`, `connection.status.changed`, `cie.status.updated`, `cie.alarm.triggered`, `cie.failure.triggered` e `cie.log.received`."
   },
   "tags": [
     {
@@ -13,7 +13,8 @@
     {
       "name": "CIE",
       "description": "Consulta de estado, painel, alarmes, logs e contadores da central de incêndio."
-    }
+    },
+    { "name": "CIE — Comandos", "description": "Comandos que acionam a central de incêndio. Atuam sobre o equipamento físico." }
   ],
   "security": [{ "ApiToken": [] }],
   "components": {
@@ -664,6 +665,355 @@
           },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "502": { "description": "Falha ao consultar a central." }
+        }
+      }
+    },
+    "/v3/api/cie/commands/{action}": {
+      "post": {
+        "tags": ["CIE — Comandos"],
+        "summary": "Comando de botão da central",
+        "description": "Executa um comando de botão. `alarm-general` e `restart` exigem `{ \"confirm\": true }` no corpo.",
+        "operationId": "executeCieCommand",
+        "parameters": [
+          {
+            "name": "action",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["silence", "release", "release-bip", "release-siren", "restart", "brigade-siren", "alarm-general", "delay-siren", "silence-bip", "silence-siren"]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "confirm": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Comando executado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/HealthResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "action": {
+                              "type": "string",
+                              "example": "silence-bip"
+                            },
+                            "payload": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "integer"
+                              }
+                            },
+                            "response": {
+                              "description": "Resposta bruta da central."
+                            },
+                            "snapshot": {
+                              "$ref": "#/components/schemas/CieStateSnapshot"
+                            }
+                          },
+                          "required": ["action", "response", "snapshot"]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "409": {
+            "description": "Comando rejeitado pela central.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Falha ao comunicar com a central.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v3/api/cie/commands/block": {
+      "post": {
+        "tags": ["CIE — Comandos"],
+        "summary": "Bloquear ou desbloquear dispositivo",
+        "operationId": "executeCieBlockCommand",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["tipoBloqueio", "laco", "numero", "bloquear"],
+                "properties": {
+                  "tipoBloqueio": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "laco": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "numero": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "bloquear": {
+                    "type": "integer",
+                    "enum": [0, 1]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Comando executado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/HealthResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "action": {
+                              "type": "string",
+                              "example": "silence-bip"
+                            },
+                            "payload": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "integer"
+                              }
+                            },
+                            "response": {
+                              "description": "Resposta bruta da central."
+                            },
+                            "snapshot": {
+                              "$ref": "#/components/schemas/CieStateSnapshot"
+                            }
+                          },
+                          "required": ["action", "response", "snapshot"]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "409": {
+            "description": "Comando rejeitado pela central.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Falha ao comunicar com a central.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v3/api/cie/commands/output": {
+      "post": {
+        "tags": ["CIE — Comandos"],
+        "summary": "Ativar ou desativar saída",
+        "operationId": "executeCieOutputCommand",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["laco", "numero", "ativo"],
+                "properties": {
+                  "laco": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "numero": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "ativo": {
+                    "type": "integer",
+                    "enum": [0, 1]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Comando executado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/HealthResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "action": {
+                              "type": "string",
+                              "example": "silence-bip"
+                            },
+                            "payload": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "integer"
+                              }
+                            },
+                            "response": {
+                              "description": "Resposta bruta da central."
+                            },
+                            "snapshot": {
+                              "$ref": "#/components/schemas/CieStateSnapshot"
+                            }
+                          },
+                          "required": ["action", "response", "snapshot"]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "409": {
+            "description": "Comando rejeitado pela central.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Falha ao comunicar com a central.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v3/api/cie/connection/reconnect": {
+      "post": {
+        "tags": ["CIE — Comandos"],
+        "summary": "Reconectar à central",
+        "description": "Força nova conexão com a central de incêndio.",
+        "operationId": "reconnectCie",
+        "responses": {
+          "200": {
+            "description": "Reconectado."
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "502": {
+            "description": "Falha ao reconectar."
+          }
         }
       }
     }

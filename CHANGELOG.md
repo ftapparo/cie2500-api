@@ -7,6 +7,9 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 ## [Unreleased]
 
 ### Adicionado
+- Comandos da central na v3 (`src/v3/cie/cie.commands.routes.ts`): `POST /v3/api/cie/commands/:action` (as 10 ações de botão da v2), `/commands/block`, `/commands/output` e `/connection/reconnect`. Mesma regra de negócio da v2 sobre os mesmos serviços de `core/`; corpo validado por Zod; `alarm-general` e `restart` exigem `{ "confirm": true }`; central recusando o comando responde `409`. Registra no log o ator repassado pela `nova-api` (`x-actor-id`/`x-actor-role`). A v2 não foi alterada.
+- WebSocket `/v3/ws` no servidor da v3, com os mesmos eventos do `/v1/ws`: exige `CIE_SERVICE_TOKEN` no upgrade (401 antes do handshake), limite de conexões (`CIE_WS_V3_MAX_CLIENTS`, padrão 5, excedente recebe 503), heartbeat de 30 s e `meta.version: "v3"` nas mensagens. Consumidor previsto: só a `nova-api` pela rede interna. O `/v1/ws` segue como estava.
+
 - Rotas de leitura do CIE migradas para a v3 (`GET /v3/api/cie/status`, `/panel`, `/alarms/active`, `/logs`, `/counters/blocks`, `/counters/outputs`), reaproveitando os mesmos serviços de `core/` que a v2 usa (`CieStateService`, `CieLogService`, `CieCommandService`), sem duplicar lógica de negócio. Schemas Zod completos em `src/v3/cie/cie.schema.ts`.
 - Autenticação de serviço na v3 (`src/v3/shared/service-auth.ts`): todas as rotas protegidas (exceto `/v3/api/health` e `/healthcheck`) exigem `Authorization: Bearer <CIE_SERVICE_TOKEN>`. Só a `nova-api` (rede interna) deve conhecer esse segredo — autorização por usuário/papel continua sendo decidida na `nova-api` antes de repassar a chamada, o CIE só verifica a origem da requisição.
 - Documentação Swagger das 6 rotas de leitura adicionada em `src/v3/openapi.json` (`securityScheme` `ApiToken`, tag `CIE`).
@@ -16,6 +19,9 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 - Descrição do `securityScheme` e mensagens de erro 401 no spec público detalhavam o mecanismo interno de autenticação (nome do token, projetos envolvidos) — reduzidas a texto genérico, já que o spec é documentação pública exposta via Swagger UI.
 
 ### Alterado
+- `CieManager.bindWebSocket(server, path?, options?)` aceita vários brokers (um por camada HTTP). Os listeners de estado — incluindo o relay de push de alarme/falha — são registrados uma única vez, para não duplicar push na API. `CieWsBroker` ganhou opções (`authorize`, `maxClients`, `heartbeatMs`, `version`); sem opções, o comportamento é o mesmo de antes.
+- Checagem do token de serviço extraída para `hasValidServiceToken()` (`src/v3/shared/service-auth.ts`), agora em tempo constante, reutilizada pelo hook HTTP e pelo upgrade do WebSocket.
+
 - Reorganização estrutural do código: `controllers/`, `routes/`, `middleware/` e `api/` movidos para `src/v2/` (camada Express atual, sem mudança de comportamento). `services/`, `ws/`, `native/`, `config.ts` e `utils.ts` movidos para dentro de `src/core/`, junto do driver real da central (`cie-client`, `cie-manager`), que já vivia em `core/`. `CieManager` já era agnóstico de framework HTTP (recebe um `http.Server` via `bindWebSocket`) — preparação para uma futura v2 de API (este projeto usa `/v1/api` hoje) que compartilhará a mesma conexão TCP com a central, o WebSocket broker e os serviços de estado/comando/log. `src/intelbras/` (SDK vendorizado do fabricante) não foi tocado.
 - `src/v3/` reorganizado por feature, seguindo `AI-Friendly Architecture Specification.md` (raiz do workspace): `routes/` e `lib/` viraram `health/`, `cie/` (uma pasta por feature) e `shared/` (só o que é genuinamente transversal — `response.ts`, `reply-helpers.ts`, `service-auth.ts`). Sem mudança de comportamento.
 

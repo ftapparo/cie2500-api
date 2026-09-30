@@ -5,8 +5,9 @@ import { serializerCompiler, validatorCompiler, type ZodTypeProvider } from 'fas
 import type { CieManager } from '../core/cie-manager';
 import { healthRoutes } from './health/health.routes';
 import { cieRoutes } from './cie/cie.routes';
+import { cieCommandRoutes } from './cie/cie.commands.routes';
 import { registerErrorHandler, responseHelpersPlugin } from './shared/reply-helpers';
-import { registerServiceAuth } from './shared/service-auth';
+import { hasValidServiceToken, registerServiceAuth } from './shared/service-auth';
 import openapiDocument from './openapi.json';
 
 /**
@@ -65,6 +66,7 @@ export async function StartWebServerV3(cieInstance: CieManager): Promise<void> {
         instance.withTypeProvider<ZodTypeProvider>();
         await healthRoutes(instance, cieInstance);
         await cieRoutes(instance, cieInstance);
+        await cieCommandRoutes(instance, cieInstance);
     }, { prefix: '/v3/api' });
 
     const port = Number(process.env.PORT_V3 || 3031);
@@ -72,6 +74,17 @@ export async function StartWebServerV3(cieInstance: CieManager): Promise<void> {
     try {
         await app.listen({ port, host: '0.0.0.0' });
         console.log(`[ApiV3] WebServer (Fastify) rodando na porta ${port}`);
+
+        // Eventos da central em tempo real, no mesmo servidor HTTP da v3.
+        // Consumidor previsto: só a nova-api pela rede interna — por isso
+        // o token de serviço no upgrade e o limite baixo de conexões.
+        cieInstance.bindWebSocket(app.server, '/v3/ws', {
+            authorize: (request) => hasValidServiceToken(request.headers),
+            maxClients: Number(process.env.CIE_WS_V3_MAX_CLIENTS || 5),
+            heartbeatMs: 30000,
+            version: 'v3',
+        });
+        console.log('[ApiV3] WebSocket disponível em /v3/ws');
     } catch (err) {
         console.error('[ApiV3] Falha ao iniciar o servidor Fastify:', err);
         throw err;
