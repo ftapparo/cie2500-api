@@ -117,7 +117,8 @@ export class PushRelayService {
     if (v3BaseUrl) {
       return {
         endpoint: `${v3BaseUrl}/v3/api/push/send`,
-        headers: { ...headers, Authorization: `Bearer ${process.env.API_SERVICE_TOKEN ?? ''}` },
+        // x-service-name identifica o CIE no histórico de comandos da API (servico:cie).
+        headers: { ...headers, Authorization: `Bearer ${process.env.API_SERVICE_TOKEN ?? ''}`, 'x-service-name': 'cie' },
       };
     }
 
