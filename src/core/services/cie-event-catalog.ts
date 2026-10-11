@@ -280,7 +280,8 @@ export function describeDevice(
 //   "MOD LIGA T A" / "MO DESLIGA T-A" / "M. DESLIGA T-C" → módulo da pressurização
 //   "GARAGEM -2 F" / "GARAGEM -2F2" / "GARAGEM 0 F" → garagem no nível -2 (subsolo 2) / 0;
 //     a letra depois do nível não tem significado conhecido e vai crua em areaDetail
-//   "GARAGEM 3" (sem letra) → numeração sequencial do acionador, não é nível
+//   "GARAGEM 1" (sem letra) → nível 1; a garagem tem só os níveis -2 a 2, então
+//     "GARAGEM 3".."GARAGEM 11" não são nível e o número vai em areaDetail
 //   "ELEVADOR 1", "ESTACIONAMENTOS" → áreas comuns
 //   "TORRE A" → torre (nome de zona/regra)
 // Fora disso o local vem da zona ou é null.
@@ -288,8 +289,10 @@ const FLOOR_RE = /^(\d{1,2}) ?ANDAR ?([ABC]) ?T-? ?([ABC])$/;
 const GROUND_RE = /^T[ÉE]RREO(?: ([ABC]))? ?T-? ?([ABC])$/;
 const PRESSURE_RE = /^PRESSURI\S* ?T-? ?([ABC])$/;
 const PRESSURE_MODULE_RE = /^(?:MOD?\.?|M\.) ?(LIGA|DESLIGA) ?T-? ?([ABC])$/;
-const GARAGE_LEVEL_RE = /^GARAGEM ?(-?\d+) ?([A-Z]\d*)$/;
+const GARAGE_LEVEL_RE = /^GARAGEM ?(-?\d+) ?([A-Z]\d*)?$/;
 const GARAGE_RE = /^GARAGEM ?(.*)$/;
+// Níveis da garagem do condomínio: subsolos -2 e -1, térreo 0, pisos 1 e 2.
+const GARAGE_LEVELS = new Set([-2, -1, 0, 1, 2]);
 const ELEVATOR_RE = /^ELEVADOR ?(.*)$/;
 const PARKING_RE = /^ESTACIONAMENTOS?$/;
 const TOWER_RE = /^TORRE ?([ABC])$/;
@@ -332,7 +335,7 @@ export function parsePlace(name: string | null): CiePlace | null {
   m = n.match(PRESSURE_RE);
   if (m) return place(m[1], null, null, 'Pressurização');
   m = n.match(GARAGE_LEVEL_RE);
-  if (m) return place(null, Number(m[1]), null, 'Garagem', m[2]);
+  if (m && GARAGE_LEVELS.has(Number(m[1]))) return place(null, Number(m[1]), null, 'Garagem', m[2] ?? null);
   m = n.match(GARAGE_RE);
   if (m) return place(null, null, null, 'Garagem', m[1] || null);
   m = n.match(ELEVATOR_RE);
