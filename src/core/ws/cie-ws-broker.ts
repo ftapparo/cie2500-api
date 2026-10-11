@@ -79,6 +79,10 @@ export class CieWsBroker {
     }
   }
 
+  get version(): string | undefined {
+    return this.options.version;
+  }
+
   private envelope(event: string, data: unknown): WsEnvelope {
     return {
       event,

@@ -32,6 +32,8 @@ export class CieManager {
     const CIE_REQUEST_TIMEOUT_MS = Number(process.env.CIE_REQUEST_TIMEOUT_MS || 10000);
     const CIE_LOG_BACKFILL_LIMIT = Number(process.env.CIE_LOG_BACKFILL_LIMIT || 50);
     const CIE_LOG_RING_SIZE = Number(process.env.CIE_LOG_RING_SIZE || 1000);
+    const CIE_LOG_SYNC_MS = Number(process.env.CIE_LOG_SYNC_MS || 15000);
+    const CIE_ACTIVE_EVENTS_LIMIT = Number(process.env.CIE_ACTIVE_EVENTS_LIMIT || 50);
 
     this.cieClient = new CieClient({
       ip: CIE_IP,
@@ -43,6 +45,8 @@ export class CieManager {
     this.cieStateService = new CieStateService(this.cieClient, this.cieLogService, {
       pollMs: CIE_POLL_MS,
       logBackfillLimit: CIE_LOG_BACKFILL_LIMIT,
+      logSyncMs: CIE_LOG_SYNC_MS,
+      activeEventsLimit: CIE_ACTIVE_EVENTS_LIMIT,
     });
     this.cieCommandService = new CieCommandService(this.cieClient);
     this.pushRelayService = new PushRelayService();
@@ -91,6 +95,12 @@ export class CieManager {
     });
     this.cieStateService.on('cie.log.received', (data) => {
       publish('cie.log.received', data);
+    });
+    // Evento novo da v3: não vai para o /v1/ws, que segue com o contrato antigo.
+    this.cieStateService.on('cie.active.updated', (data) => {
+      this.wsBrokers
+        .filter((broker) => broker.version === 'v3')
+        .forEach((broker) => broker.publish('cie.active.updated', data));
     });
   }
 

@@ -7,6 +7,10 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 ## [Unreleased]
 
 ### Adicionado
+- Interpretação completa dos eventos da central (`src/core/services/cie-event-catalog.ts`), com a tabela de códigos do ProgramadorCIE: alarme 0–6, supervisão 0–3, falha 0–52 e operação 0–60. Todo log ganha `event` (`category`, `code`, `label`, `kind`, `severity`), `display` (`title`, `description`, `location`), `source`, `number`, `firstEvent`, `origin`, `repeater` e `historyTotal`. Os campos antigos continuam iguais; a v2 só recebe os campos extras.
+- Leitura dos eventos ativos da central (`getEvent`), relida sempre que um contador do status muda: `GET /v3/api/cie/events/active?type=`, `activeAlarms` em `/v3/api/cie/alarms/active` e evento `cie.active.updated`, publicado só no `/v3/ws`.
+- `situation` (situação geral pronta para exibir) em `/v3/api/cie/panel` e `/v3/api/cie/alarms/active`; filtro `kind=` em `/v3/api/cie/logs`.
+- Sincronização periódica do histórico (`CIE_LOG_SYNC_MS`, padrão 15 s), inclusive de operações, que antes só eram lidas na conexão inicial. Limite de ativos lidos por tipo em `CIE_ACTIVE_EVENTS_LIMIT` (padrão 50).
 - Push pela v3 envia `x-service-name: cie`, para o histórico de comandos da `nova-api` mostrar `servico:cie`.
 - Push de alarme/falha pode ir para a v3 da `nova-api`: com `MAIN_API_V3_BASE_URL` definida (ex.: `http://nova-api:3031`), o relay envia para `/v3/api/push/send` autenticado por `API_SERVICE_TOKEN`. Sem a variável, segue em `/v2/api/push/send` como sempre (padrão). `MAIN_API_BASE_URL` continua sendo a chave que liga o relay.
 - Comandos da central na v3 (`src/v3/cie/cie.commands.routes.ts`): `POST /v3/api/cie/commands/:action` (as 10 ações de botão da v2), `/commands/block`, `/commands/output` e `/connection/reconnect`. Mesma regra de negócio da v2 sobre os mesmos serviços de `core/`; corpo validado por Zod; `alarm-general` e `restart` exigem `{ "confirm": true }`; central recusando o comando responde `409`. Registra no log o ator repassado pela `nova-api` (`x-actor-id`/`x-actor-role`). A v2 não foi alterada.
@@ -17,6 +21,10 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 - Documentação Swagger das 6 rotas de leitura adicionada em `src/v3/openapi.json` (`securityScheme` `ApiToken`, tag `CIE`).
 
 ### Corrigido
+- Novas falhas e alarmes podiam não ser lidos: o backfill usava o contador de eventos **ativos** como índice do **histórico** (em que 1 é o mais recente) e relia registros antigos. Agora o histórico é lido a partir do registro 1 até encontrar um já conhecido.
+- A categoria 3 do canal de eventos ativos (bloqueio) era sobrescrita como operação; cada canal agora tem o seu mapeamento.
+- Rótulos de dispositivo corrigidos conforme o ProgramadorCIE: tipo 12 "Saída Local" (antes saía "Acionador Manual"), tipo 10 "Sinalizador Audiovisual" e subtipos 5–13; o tipo tem prioridade sobre o subtipo, que chega com só 3 bits pelo UDP.
+- Push de alarme/falha usa o evento ativo que é uma ativação real e o rótulo dele, em vez do último log com texto fixo ("Disp. em Alarme"), que podia ser uma restauração ou a sirene confirmada. Falha não notifica quando todas as falhas ativas são restauração/registro. Gatilhos, cooldowns e contrato com a `nova-api` não mudaram.
 - Swagger UI (`/v3/swagger`) e o spec (`/v3/apispec_1.json`) exigiam indevidamente o token de acesso — o hook de autenticação de serviço isentava só `/v3/api/health`, não a documentação. Ambos já são protegidos pela flag `SWAGGER_V3_ENABLED`; agora ficam explicitamente fora da verificação de token.
 - Descrição do `securityScheme` e mensagens de erro 401 no spec público detalhavam o mecanismo interno de autenticação (nome do token, projetos envolvidos) — reduzidas a texto genérico, já que o spec é documentação pública exposta via Swagger UI.
 

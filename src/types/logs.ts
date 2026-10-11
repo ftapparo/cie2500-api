@@ -1,6 +1,27 @@
 export type CieLogType = 'alarme' | 'falha' | 'supervisao' | 'operacao' | 'bloqueio';
 export type CieEventType = CieLogType;
 export type CieHistoricLogType = Exclude<CieLogType, 'bloqueio'>;
+// Canal de eventos ativos da central: não existe "operacao", e o índice 3 é bloqueio.
+export type CieActiveType = Exclude<CieLogType, 'operacao'>;
+
+// ativacao = algo começou (incêndio, falha nova); restauracao = algo voltou ao normal;
+// estado = resumo do sistema ("Sistema em Falha"); informativo = registro sem ação.
+export type CieEventKind = 'ativacao' | 'restauracao' | 'estado' | 'informativo';
+export type CieEventSeverity = 'critical' | 'warning' | 'info' | 'ok';
+
+export type CieEventInfo = {
+  category: CieLogType;
+  code: number | null;
+  label: string;
+  kind: CieEventKind;
+  severity: CieEventSeverity;
+};
+
+export type CieLogDisplay = {
+  title: string;
+  description: string | null;
+  location: string | null;
+};
 
 export type CieDeviceClassification = {
   typeCode: number | null;
@@ -28,15 +49,36 @@ export type NormalizedCieLog = {
   occurredAt: string;
   raw: unknown;
   createdAt: number;
+  source: 'historico' | 'ativo';
+  event: CieEventInfo;
+  display: CieLogDisplay;
+  number: number | null;
+  firstEvent: boolean | null;
+  origin: number | null;
+  repeater: number | null;
+  historyTotal: number | null;
+};
+
+export type CieCounters = {
+  alarme: number;
+  falha: number;
+  supervisao: number;
+  bloqueio: number;
 };
 
 export type AlarmActiveSnapshot = {
   isTriggered: boolean;
-  counters: {
-    alarme: number;
-    falha: number;
-    supervisao: number;
-    bloqueio: number;
-  };
+  counters: CieCounters;
   latestAlarmLogs: NormalizedCieLog[];
 };
+
+export type CiePanelState = 'offline' | 'reiniciando' | 'alarme' | 'falha' | 'supervisao' | 'bloqueio' | 'normal';
+
+export type CiePanelSituation = {
+  state: CiePanelState;
+  label: string;
+  severity: CieEventSeverity;
+  silenced: boolean;
+};
+
+export type CieActiveEvents = Record<CieActiveType, NormalizedCieLog[]>;

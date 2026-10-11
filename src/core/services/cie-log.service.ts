@@ -1,17 +1,39 @@
 import { trimNulls } from '../utils';
-import type { AlarmActiveSnapshot, CieDeviceClassification, CieLogType, NormalizedCieLog } from '../../types/logs';
+import { describeDevice, describeEvent } from './cie-event-catalog';
+import type {
+  AlarmActiveSnapshot,
+  CieActiveEvents,
+  CieActiveType,
+  CieCounters,
+  CieDeviceClassification,
+  CieEventInfo,
+  CieEventKind,
+  CieLogDisplay,
+  CieLogType,
+  NormalizedCieLog,
+} from '../../types/logs';
 
 type ListOptions = {
   type?: CieLogType;
+  kind?: CieEventKind;
   limit: number;
   cursor?: string;
 };
+
+type LogSource = NormalizedCieLog['source'];
+
+// O mesmo índice de categoria significa coisas diferentes em cada canal da
+// central: no histórico (getLog) 3 é operação; nos eventos ativos (getEvent) 3 é bloqueio.
+const HISTORY_CATEGORY: Record<number, CieLogType> = { 0: 'alarme', 1: 'falha', 2: 'supervisao', 3: 'operacao' };
+const ACTIVE_CATEGORY: Record<number, CieActiveType> = { 0: 'alarme', 1: 'falha', 2: 'supervisao', 3: 'bloqueio' };
+
+export const ACTIVE_TYPES: CieActiveType[] = ['alarme', 'falha', 'supervisao', 'bloqueio'];
 
 function normalizeString(value: unknown): string | null {
   if (typeof value !== 'string') return null;
   const cleaned = trimNulls(value)
     .replace(/[\x00-\x1F\x7F]/g, '')
-    .replace(/\u00FF/gi, '')
+    .replace(/ÿ/gi, '')
     .trim();
   return cleaned.length ? cleaned : null;
 }
@@ -95,73 +117,6 @@ function parseOccurredAt(raw: any): string {
   return localCieTimeToIso(year, month, day, hour, min, sec);
 }
 
-const DEVICE_TYPE_LABELS: Record<number, string> = {
-  0: 'Ausente',
-  1: 'Sensor de Fumaca',
-  2: 'Sensor de Temperatura',
-  3: 'Acionador Manual',
-  4: 'Modulo de Zona',
-  5: 'Modulo de Entrada',
-  9: 'Modulo de Entrada/Saida',
-  10: 'Sirene Audiovisual',
-  11: 'Alimentacao',
-};
-
-const DEVICE_SUBTYPE_LABELS: Record<number, string> = {
-  0: 'Nao informado',
-  1: 'Sensor de Fumaca',
-  2: 'Sensor de Temperatura',
-  3: 'Acionador Manual',
-  4: 'Modulo de Zona',
-  5: 'Modulo de Entrada',
-  9: 'Modulo de Entrada/Saida',
-  10: 'Sirene Audiovisual',
-  11: 'Alimentacao',
-  12: 'Acionador Manual',
-};
-
-function inferByName(deviceName: string | null): string | null {
-  if (!deviceName) return null;
-  const normalized = trimNulls(deviceName).trim().toLowerCase();
-  if (!normalized) return null;
-
-  if (normalized.includes('fuma')) return 'Sensor de Fumaca';
-  if (normalized.includes('temper')) return 'Sensor de Temperatura';
-  if (normalized.includes('acionador') || normalized.includes('botoeira')) return 'Acionador Manual';
-  if (normalized.includes('sirene')) return 'Sirene Audiovisual';
-  if (normalized.includes('aliment')) return 'Alimentacao';
-  if (normalized.includes('modulo')) return 'Modulo';
-  return null;
-}
-
-function classifyDevice(raw: any, deviceName: string | null): CieDeviceClassification | null {
-  const typeCode = toNumber(raw?.tipo_dispositivo);
-  const subtypeCode = toNumber(raw?.subtipo_dispositivo);
-  const typeLabel = typeCode !== null ? (DEVICE_TYPE_LABELS[typeCode] ?? null) : null;
-  const subtypeLabel = subtypeCode !== null ? (DEVICE_SUBTYPE_LABELS[subtypeCode] ?? null) : null;
-  const inferred = inferByName(deviceName);
-  const resolvedLabel = subtypeLabel || typeLabel || inferred || null;
-
-  if (
-    typeCode === null
-    && subtypeCode === null
-    && !typeLabel
-    && !subtypeLabel
-    && !resolvedLabel
-  ) {
-    return null;
-  }
-
-  return {
-    typeCode,
-    subtypeCode,
-    typeLabel,
-    subtypeLabel,
-    resolvedLabel,
-    source: subtypeLabel || typeLabel ? 'codes' : (inferred ? 'name' : 'none'),
-  };
-}
-
 function isGarbageLogPayload(raw: any, address: number | null, zone: number | null, loop: number | null): boolean {
   const rawDevice = String(raw?.nome_dispositivo ?? '');
   const rawZone = String(raw?.nome_zona ?? '');
@@ -172,10 +127,99 @@ function isGarbageLogPayload(raw: any, address: number | null, zone: number | nu
   return hasNoCounter && (invalidAddressing || containsFfGarbage);
 }
 
+type DisplayInput = {
+  event: CieEventInfo;
+  device: CieDeviceClassification | null;
+  deviceName: string | null;
+  loop: number | null;
+  address: number | null;
+  zone: number | null;
+  zoneName: string | null;
+};
+
+// Textos prontos para exibição, para web e apps não precisarem montar nada.
+function buildDisplay(input: DisplayInput): CieLogDisplay {
+  const { event, device, deviceName, loop, address, zone, zoneName } = input;
+
+  // Em operações não há dispositivo: o "nome" é o da regra/zona envolvida.
+  if (event.category === 'operacao') {
+    return { title: event.label, description: deviceName, location: null };
+  }
+
+  const deviceLabel = device?.resolvedLabel ?? null;
+  const description = deviceLabel && deviceName && deviceLabel.toLowerCase() !== deviceName.toLowerCase()
+    ? `${deviceLabel} – ${deviceName}`
+    : (deviceName || deviceLabel);
+
+  const parts: string[] = [];
+  if (loop !== null && loop > 0) {
+    parts.push(`Laço ${loop}`);
+    if (address !== null) parts.push(`Endereço ${address}`);
+  }
+  if (zone !== null && zone > 0) {
+    parts.push(zoneName ? `Zona ${zone} – ${zoneName}` : `Zona ${zone}`);
+  } else if (zoneName) {
+    parts.push(zoneName);
+  }
+
+  return { title: event.label, description, location: parts.length ? parts.join(' · ') : null };
+}
+
+function normalize(raw: any, category: CieLogType, source: LogSource): NormalizedCieLog | null {
+  const id = toNumber(raw?.id) ?? 0;
+  const address = toNumber(raw?.endereco);
+  const zone = toNumber(raw?.zona);
+  const loop = toNumber(raw?.laco);
+  if (isGarbageLogPayload(raw, address, zone, loop)) return null;
+
+  const occurredAt = parseOccurredAt(raw);
+  const deviceName = normalizeString(raw?.nome_dispositivo);
+  const zoneName = normalizeString(raw?.nome_zona);
+  const eventType = toNumber(raw?.tipo);
+  const deviceClassification = describeDevice(
+    toNumber(raw?.tipo_dispositivo),
+    toNumber(raw?.subtipo_dispositivo),
+    deviceName,
+  );
+  const event = describeEvent(category, eventType);
+
+  return {
+    key: `${category}:${id}:${address ?? 'na'}:${occurredAt}`,
+    type: category,
+    id,
+    zone,
+    address,
+    loop,
+    deviceName,
+    zoneName,
+    deviceTypeCode: deviceClassification?.typeCode ?? null,
+    deviceTypeLabel: deviceClassification?.typeLabel ?? deviceClassification?.resolvedLabel ?? null,
+    deviceClassification,
+    eventType,
+    blocked: typeof raw?.bloqueado === 'boolean' ? raw.bloqueado : (toNumber(raw?.bloqueado) === 1),
+    occurredAt,
+    raw,
+    createdAt: Date.now(),
+    source,
+    event,
+    display: buildDisplay({ event, device: deviceClassification, deviceName, loop, address, zone, zoneName }),
+    number: toNumber(raw?.numero),
+    firstEvent: typeof raw?.primeiro_evento === 'boolean' ? raw.primeiro_evento : null,
+    origin: toNumber(raw?.origem),
+    repeater: toNumber(raw?.repetidora),
+    historyTotal: source === 'historico' ? toNumber(raw?.contador) : null,
+  };
+}
+
+function emptyActive(): CieActiveEvents {
+  return { alarme: [], falha: [], supervisao: [], bloqueio: [] };
+}
+
 export class CieLogService {
   private readonly ringSize: number;
   private readonly logs: NormalizedCieLog[] = [];
   private readonly dedup = new Set<string>();
+  private activeEvents: CieActiveEvents = emptyActive();
 
   constructor(ringSize: number) {
     this.ringSize = Math.max(100, ringSize);
@@ -184,48 +228,29 @@ export class CieLogService {
   reset() {
     this.logs.length = 0;
     this.dedup.clear();
+    this.activeEvents = emptyActive();
+  }
+
+  /** Normaliza um registro do histórico (getLog) sem armazenar. */
+  normalizeHistory(type: CieLogType, raw: any): NormalizedCieLog | null {
+    const resolvedType = HISTORY_CATEGORY[Number(raw?.tipo_evento)] || type;
+    return normalize(raw, resolvedType, 'historico');
+  }
+
+  has(key: string): boolean {
+    return this.dedup.has(key);
+  }
+
+  knownKeys(type: CieLogType): Set<string> {
+    return new Set(this.logs.filter((l) => l.type === type).map((l) => l.key));
   }
 
   add(type: CieLogType, raw: any): NormalizedCieLog | null {
-    const typeByEvent: Record<number, CieLogType> = {
-      0: 'alarme',
-      1: 'falha',
-      2: 'supervisao',
-      3: 'operacao',
-    };
-    const resolvedType = typeByEvent[Number(raw?.tipo_evento)] || type;
-    const id = toNumber(raw?.id) ?? 0;
-    const address = toNumber(raw?.endereco);
-    const zone = toNumber(raw?.zona);
-    const loop = toNumber(raw?.laco);
-    if (isGarbageLogPayload(raw, address, zone, loop)) return null;
-    const occurredAt = parseOccurredAt(raw);
-    const key = `${resolvedType}:${id}:${address ?? 'na'}:${occurredAt}`;
-    if (this.dedup.has(key)) return null;
-
-    const deviceName = normalizeString(raw?.nome_dispositivo);
-    const deviceClassification = classifyDevice(raw, deviceName);
-    const log: NormalizedCieLog = {
-      key,
-      type: resolvedType,
-      id,
-      zone,
-      address,
-      loop,
-      deviceName,
-      zoneName: normalizeString(raw?.nome_zona),
-      deviceTypeCode: deviceClassification?.typeCode ?? null,
-      deviceTypeLabel: deviceClassification?.typeLabel ?? deviceClassification?.resolvedLabel ?? null,
-      deviceClassification,
-      eventType: toNumber(raw?.tipo),
-      blocked: typeof raw?.bloqueado === 'boolean' ? raw.bloqueado : (toNumber(raw?.bloqueado) === 1),
-      occurredAt,
-      raw,
-      createdAt: Date.now(),
-    };
+    const log = this.normalizeHistory(type, raw);
+    if (!log || this.dedup.has(log.key)) return null;
 
     this.logs.push(log);
-    this.dedup.add(key);
+    this.dedup.add(log.key);
     while (this.logs.length > this.ringSize) {
       const removed = this.logs.shift();
       if (removed) this.dedup.delete(removed.key);
@@ -234,10 +259,47 @@ export class CieLogService {
     return log;
   }
 
+  /** Substitui a lista de eventos ativos (getEvent) de um tipo. */
+  setActive(type: CieActiveType, raws: any[]): NormalizedCieLog[] {
+    const items: NormalizedCieLog[] = [];
+    for (const raw of raws) {
+      const category = ACTIVE_CATEGORY[Number(raw?.tipo_evento)] || type;
+      const item = normalize(raw, category, 'ativo');
+      if (item) items.push(item);
+    }
+    items.sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
+    this.activeEvents[type] = items;
+    return items;
+  }
+
+  clearActive(type: CieActiveType) {
+    this.activeEvents[type] = [];
+  }
+
+  active(type: CieActiveType): NormalizedCieLog[] {
+    return [...this.activeEvents[type]];
+  }
+
+  activeAll(): CieActiveEvents {
+    return {
+      alarme: this.active('alarme'),
+      falha: this.active('falha'),
+      supervisao: this.active('supervisao'),
+      bloqueio: this.active('bloqueio'),
+    };
+  }
+
   latestByType(type: CieLogType, limit = 20): NormalizedCieLog[] {
     const list = this.logs.filter((l) => l.type === type);
     list.sort((a, b) => b.occurredAt.localeCompare(a.occurredAt));
     return list.slice(0, Math.max(1, limit));
+  }
+
+  /** Último registro do histórico daquele tipo com a natureza pedida (ex.: só ativações). */
+  latestByKind(type: CieLogType, kind: CieEventKind): NormalizedCieLog | null {
+    const list = this.logs.filter((l) => l.type === type && l.event.kind === kind);
+    list.sort((a, b) => b.occurredAt.localeCompare(a.occurredAt));
+    return list[0] ?? null;
   }
 
   latestReceivedByType(type: CieLogType, limit = 20): NormalizedCieLog[] {
@@ -250,9 +312,8 @@ export class CieLogService {
     const safeLimit = Math.min(200, Math.max(1, options.limit));
     const offset = Math.max(0, Number(options.cursor || 0) || 0);
 
-    const source = options.type
-      ? this.logs.filter((l) => l.type === options.type)
-      : [...this.logs];
+    const source = this.logs.filter((l) =>
+      (!options.type || l.type === options.type) && (!options.kind || l.event.kind === options.kind));
     source.sort((a, b) => b.occurredAt.localeCompare(a.occurredAt));
 
     const items = source.slice(offset, offset + safeLimit);
@@ -266,6 +327,14 @@ export class CieLogService {
       isTriggered: counters.alarme > 0,
       counters,
       latestAlarmLogs: this.latestByType('alarme', 20),
+    };
+  }
+
+  /** Versão da v3: inclui os alarmes realmente ativos na central, além do histórico. */
+  activeAlarmSnapshot(counters: CieCounters) {
+    return {
+      ...this.alarmSnapshot(counters),
+      activeAlarms: this.active('alarme'),
     };
   }
 }

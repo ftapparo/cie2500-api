@@ -7,6 +7,8 @@ type EventLog = {
   deviceName?: string | null;
   deviceTypeLabel?: string | null;
   occurredAt?: string | null;
+  event?: { label?: string; kind?: string } | null;
+  display?: { title?: string; description?: string | null; location?: string | null } | null;
 };
 
 type FireAlarmEventPayload = {
@@ -20,6 +22,7 @@ type FireAlarmEventPayload = {
     bloqueio?: number;
   };
   latestAlarmLogs?: unknown[];
+  activeAlarms?: unknown[];
 };
 
 type FailureAlarmEventPayload = {
@@ -33,6 +36,7 @@ type FailureAlarmEventPayload = {
   };
   bipSilenced?: boolean;
   latestFailureLogs?: unknown[];
+  activeFailures?: unknown[];
 };
 
 const normalizeBaseUrl = (value: string): string => value.trim().replace(/\/+$/, '');
@@ -61,6 +65,31 @@ const formatDateTime = (value: unknown): string => {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return 'Data/Hora indisponível';
   return `${parsed.toLocaleDateString('pt-BR')} ${parsed.toLocaleTimeString('pt-BR', { hour12: false })}`;
+};
+
+const asLogs = (value: unknown): EventLog[] => (Array.isArray(value) ? (value as EventLog[]) : []);
+
+// Prioridade: evento ativo que é uma ativação real (ex.: Alarme 1, não a
+// "Saída Confirmada" da sirene nem uma restauração), depois o histórico.
+const pickEvent = (active: unknown, history: unknown): EventLog | undefined => {
+  const activeLogs = asLogs(active);
+  const historyLogs = asLogs(history);
+  return activeLogs.find((log) => log.event?.kind === 'ativacao')
+    ?? historyLogs.find((log) => log.event?.kind === 'ativacao')
+    ?? activeLogs[0]
+    ?? historyLogs[0];
+};
+
+const buildBody = (log: EventLog | undefined, fallbackLabel: string): string => {
+  const description = log?.display?.description || normalizeLabel(log?.zoneName || log?.deviceName);
+  const eventLabel = log?.event?.label || fallbackLabel;
+  const location = log?.display?.location || `Laço/Endereço: ${buildAddress(log)}`;
+  return [
+    description,
+    `${eventLabel} | Tipo: ${normalizeLabel(log?.deviceTypeLabel, 'Não informado')}`,
+    location,
+    `Data/Hora: ${formatDateTime(log?.occurredAt)}`,
+  ].join('\n');
 };
 
 export class PushRelayService {
@@ -190,18 +219,10 @@ export class PushRelayService {
     if (this.shouldSkipByCooldown('fire-alarm', this.lastFireAlarmSentAt, this.fireAlarmCooldownMs)) return;
 
     const requestId = randomUUID();
-    const latestLog = Array.isArray(data?.latestAlarmLogs) && data.latestAlarmLogs.length > 0
-      ? data.latestAlarmLogs[0] as EventLog
-      : undefined;
+    const latestLog = pickEvent(data?.activeAlarms, data?.latestAlarmLogs);
     const alarmCount = Number(data?.counters?.alarme || 0);
-    const alarmTitle = alarmCount > 0 ? 'SISTEMA EM ALARME' : 'ALARME DE INCENDIO';
-
-    const body = [
-      `${buildAddress(latestLog)} - ${normalizeLabel(latestLog?.zoneName || latestLog?.deviceName)}`,
-      `Disp. em Alarme | Tipo: ${normalizeLabel(latestLog?.deviceTypeLabel, 'Não informado')}`,
-      `Zona: ${normalizeLabel(latestLog?.zoneName)} | Dispositivo: ${normalizeLabel(latestLog?.deviceName)}`,
-      `Laço/Endereço: ${buildAddress(latestLog)} | Data/Hora: ${formatDateTime(latestLog?.occurredAt)}`,
-    ].join('\n');
+    const alarmTitle = alarmCount > 1 ? `ALARME DE INCÊNDIO (${alarmCount} ativos)` : 'ALARME DE INCÊNDIO';
+    const body = buildBody(latestLog, 'Alarme');
 
     await this.postGenericPush(requestId, {
       title: alarmTitle,
@@ -230,21 +251,21 @@ export class PushRelayService {
       return;
     }
 
+    // Falhas ativas que são só restauração/registro não justificam notificar.
+    const activeFailures = asLogs(data?.activeFailures);
+    if (activeFailures.length > 0
+      && activeFailures.every((log) => log.event?.kind === 'restauracao' || log.event?.kind === 'informativo')) {
+      console.log('[PushRelayService] failure-alarm ignorado: nenhuma falha ativa relevante.');
+      return;
+    }
+
     if (this.shouldSkipByCooldown('failure-alarm', this.lastFailureAlarmSentAt, this.failureAlarmCooldownMs)) return;
 
     const requestId = randomUUID();
-    const latestLog = Array.isArray(data?.latestFailureLogs) && data.latestFailureLogs.length > 0
-      ? data.latestFailureLogs[0] as EventLog
-      : undefined;
+    const latestLog = pickEvent(data?.activeFailures, data?.latestFailureLogs);
     const failureCount = Number(data?.counters?.falha || 0);
-    const failureTitle = failureCount > 0 ? 'SISTEMA EM FALHA' : 'FALHA NA CENTRAL';
-
-    const body = [
-      `${buildAddress(latestLog)} - ${normalizeLabel(latestLog?.zoneName || latestLog?.deviceName)}`,
-      `Disp. em Falha | Tipo: ${normalizeLabel(latestLog?.deviceTypeLabel, 'Não informado')}`,
-      `Zona: ${normalizeLabel(latestLog?.zoneName)} | Dispositivo: ${normalizeLabel(latestLog?.deviceName)}`,
-      `Laço/Endereço: ${buildAddress(latestLog)} | Data/Hora: ${formatDateTime(latestLog?.occurredAt)}`,
-    ].join('\n');
+    const failureTitle = failureCount > 1 ? `FALHA NA CENTRAL (${failureCount} ativas)` : 'FALHA NA CENTRAL';
+    const body = buildBody(latestLog, 'Falha');
 
     await this.postGenericPush(requestId, {
       title: failureTitle,

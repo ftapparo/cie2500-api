@@ -4,10 +4,14 @@ import { z } from 'zod';
 import type { CieManager } from '../../core/cie-manager';
 import { trimNulls } from '../../core/utils';
 import { successResponseSchema } from '../shared/response';
+import type { CieActiveType } from '../../types/logs';
 import {
+    activeEventsDataSchema,
+    activeTypeQuerySchema,
     alarmActiveSnapshotSchema,
     blockCountersSchema,
     cieStateSnapshotSchema,
+    eventKindQuerySchema,
     logsListDataSchema,
     logTypeQuerySchema,
     outputCountersSchema,
@@ -44,8 +48,9 @@ export async function cieRoutes(app: FastifyInstance, cieInstance: CieManager) {
         schema: { response: { 200: successResponseSchema(panelDataSchema) } },
     }, async (_request, reply) => {
         const snapshot = stateService.getSnapshot();
-        const latestFailureEvent = logService.latestByType('falha', 1)[0] ?? null;
-        const latestAlarmEvent = logService.latestByType('alarme', 1)[0] ?? null;
+        // Último incêndio/falha de verdade: ignora restaurações e "Saída Confirmada".
+        const latestFailureEvent = logService.latestByKind('falha', 'ativacao');
+        const latestAlarmEvent = logService.latestByKind('alarme', 'ativacao');
         const restartingUntil = Number(snapshot.restartingUntil || 0);
         const restarting = Number.isFinite(restartingUntil) && restartingUntil > Date.now();
 
@@ -70,33 +75,48 @@ export async function cieRoutes(app: FastifyInstance, cieInstance: CieManager) {
             leds: snapshot.status?.leds ?? null,
             latestFailureEvent,
             latestAlarmEvent,
+            situation: stateService.getSituation(),
         });
     });
 
     typedApp.get('/cie/alarms/active', {
         schema: { response: { 200: successResponseSchema(alarmActiveSnapshotSchema) } },
     }, async (_request, reply) => {
-        const snap = stateService.getSnapshot();
-        const counters = {
-            alarme: Number(snap.status?.status?.alarme || 0),
-            falha: Number(snap.status?.status?.falha || 0),
-            supervisao: Number(snap.status?.status?.supervisao || 0),
-            bloqueio: Number(snap.status?.status?.bloqueio || 0),
-        };
-        reply.ok(logService.alarmSnapshot(counters));
+        reply.ok({
+            ...logService.activeAlarmSnapshot(stateService.getCounters()),
+            situation: stateService.getSituation(),
+        });
+    });
+
+    typedApp.get('/cie/events/active', {
+        schema: {
+            querystring: z.object({ type: activeTypeQuerySchema.optional() }),
+            response: { 200: successResponseSchema(activeEventsDataSchema) },
+        },
+    }, async (request, reply) => {
+        const { type } = request.query;
+        const all = logService.activeAll();
+        const events: Partial<Record<CieActiveType, typeof all.alarme>> = type ? { [type]: all[type] } : all;
+
+        reply.ok({
+            counters: stateService.getCounters(),
+            situation: stateService.getSituation(),
+            events,
+        });
     });
 
     typedApp.get('/cie/logs', {
         schema: {
             querystring: z.object({
                 type: logTypeQuerySchema.optional(),
+                kind: eventKindQuerySchema.optional(),
                 limit: z.coerce.number().optional(),
                 cursor: z.string().optional(),
             }),
             response: { 200: successResponseSchema(logsListDataSchema) },
         },
     }, async (request, reply) => {
-        const { type, limit: rawLimit, cursor } = request.query;
+        const { type, kind, limit: rawLimit, cursor } = request.query;
         const limit = parseLimit(rawLimit, 50);
 
         if (!cursor && type && LOG_TYPES.includes(type)) {
@@ -105,7 +125,7 @@ export async function cieRoutes(app: FastifyInstance, cieInstance: CieManager) {
             await stateService.waitForWarmup(12000);
         }
 
-        const result = logService.list({ type, limit, cursor });
+        const result = logService.list({ type, kind, limit, cursor });
 
         reply.ok({
             type: type ?? 'all',

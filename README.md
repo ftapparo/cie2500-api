@@ -176,6 +176,8 @@ Copie `.env.example` para `.env` e ajuste:
 - `CIE_REQUEST_TIMEOUT_MS`
 - `CIE_LOG_BACKFILL_LIMIT`
 - `CIE_LOG_RING_SIZE`
+- `CIE_LOG_SYNC_MS` (default: `15000`) — leitura periódica do histórico, inclusive operações
+- `CIE_ACTIVE_EVENTS_LIMIT` (default: `50`) — máximo de eventos ativos lidos por tipo
 - `CIE_DISCOVERY_ENABLED` (default recomendado em Docker Windows: `false`)
 - `CIE_RESTART_WATCHDOG_ENABLED` (default recomendado em Docker: `false`)
 - `CIE_CMD_*` (mapeamento dos comandos críticos)
@@ -229,6 +231,17 @@ Base: `/v1/api`
 | POST | `/cie/commands/output` | Controlar saída |
 | POST | `/cie/connection/reconnect` | Forçar reconexão |
 
+### v3 (`/v3/api`, só para a nova-api)
+
+Mesmas leituras, com os eventos já interpretados (tabela de códigos do ProgramadorCIE em `src/core/services/cie-event-catalog.ts`):
+
+- todo log traz `event` (`category`, `code`, `label`, `kind`, `severity`), `display` (`title`, `description`, `location`) e `source` (`historico` | `ativo`);
+- `GET /cie/events/active?type=` — eventos ativos agora (alarme, falha, supervisão, bloqueio);
+- `/cie/panel` e `/cie/alarms/active` trazem `situation` (situação geral pronta para exibir); `/cie/alarms/active` traz `activeAlarms`;
+- `/cie/logs` aceita `kind=` (`ativacao`, `restauracao`, `estado`, `informativo`).
+
+Spec completo em `/v3/apispec_1.json`.
+
 ---
 
 ## 🔌 WebSocket
@@ -242,6 +255,8 @@ Eventos:
 - `cie.alarm.triggered`
 - `cie.failure.triggered`
 - `cie.log.received`
+
+No `/v3/ws` há também `cie.active.updated` (`{ type, items, counters }`), enviado quando a lista de eventos ativos de um tipo muda.
 
 Envelope:
 

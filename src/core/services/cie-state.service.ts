@@ -1,21 +1,28 @@
 import { EventEmitter } from 'node:events';
 import { spawn } from 'node:child_process';
 import type { CieClient } from '../cie-client';
-import type { CieLogService } from './cie-log.service';
-import type { CieHistoricLogType, CieLogType } from '../../types/logs';
+import { ACTIVE_TYPES, type CieLogService } from './cie-log.service';
+import { describePanelSituation } from './cie-event-catalog';
+import type {
+  CieActiveType,
+  CieCounters,
+  CieHistoricLogType,
+  CieLogType,
+  CiePanelSituation,
+} from '../../types/logs';
 import type { CieStateSnapshot } from '../../types/state';
 
 type CieStateServiceOptions = {
   pollMs: number;
   logBackfillLimit: number;
+  logSyncMs?: number;
+  activeEventsLimit?: number;
 };
 
-type StatusCounters = {
-  alarme: number;
-  falha: number;
-  supervisao: number;
-  bloqueio: number;
-};
+type StatusCounters = CieCounters;
+
+const HISTORY_TYPES: CieHistoricLogType[] = ['alarme', 'falha', 'supervisao', 'operacao'];
+const INITIAL_SYNC_LIMIT = 20;
 
 function getCounters(status: any): StatusCounters {
   return {
@@ -39,7 +46,7 @@ function isBipSilenced(status: any): boolean {
 export class CieStateService extends EventEmitter {
   private readonly client: CieClient;
   private readonly logService: CieLogService;
-  private readonly options: CieStateServiceOptions;
+  private readonly options: Required<CieStateServiceOptions>;
   private readonly restartWatchdogEnabled: boolean;
 
   private pollTimer: NodeJS.Timeout | null = null;
@@ -52,6 +59,9 @@ export class CieStateService extends EventEmitter {
   private ensureByType: Partial<Record<CieLogType, Promise<void>>> = {};
   private reconnectInFlight = false;
   private heartbeatTimer: NodeJS.Timeout | null = null;
+  private syncTimer: NodeJS.Timeout | null = null;
+  private syncHistoryByType: Partial<Record<CieHistoricLogType, Promise<void>>> = {};
+  private activeRetryAt: Partial<Record<CieActiveType, number>> = {};
 
   private snapshot: CieStateSnapshot = {
     connected: false,
@@ -77,11 +87,27 @@ export class CieStateService extends EventEmitter {
     this.options = {
       pollMs: Math.max(1000, options.pollMs),
       logBackfillLimit: Math.max(1, options.logBackfillLimit),
+      logSyncMs: Math.max(5000, options.logSyncMs ?? 15000),
+      activeEventsLimit: Math.max(1, Math.min(250, options.activeEventsLimit ?? 50)),
     };
   }
 
   getSnapshot(): CieStateSnapshot {
     return { ...this.snapshot };
+  }
+
+  getCounters(): StatusCounters {
+    return getCounters(this.snapshot.status);
+  }
+
+  /** Situação geral pronta para exibição (alarme > falha > supervisão > bloqueio > normal). */
+  getSituation(): CiePanelSituation {
+    return describePanelSituation({
+      connected: this.snapshot.connected,
+      restarting: this.isRestarting(),
+      counters: this.snapshot.status ? this.getCounters() : null,
+      leds: this.snapshot.status?.leds ?? null,
+    });
   }
 
   private setConnected(connected: boolean) {
@@ -148,6 +174,8 @@ export class CieStateService extends EventEmitter {
     this.snapshot.lastError = null;
     this.previousCounters = { alarme: 0, falha: 0, supervisao: 0, bloqueio: 0 };
     this.ensureByType = {};
+    this.syncHistoryByType = {};
+    this.activeRetryAt = {};
     this.warmupPromise = null;
     this.backfillInFlight = 0;
   }
@@ -221,17 +249,8 @@ export class CieStateService extends EventEmitter {
       if (normalized) this.emit('cie.log.received', normalized);
     });
 
-    this.client.onEvent((event) => {
-      const typeMap: Record<number, CieLogType> = {
-        0: 'alarme',
-        1: 'falha',
-        2: 'supervisao',
-        3: 'bloqueio',
-      };
-      const type = typeMap[Number(event?.tipo_evento)] || 'operacao';
-      const normalized = this.logService.add(type, event);
-      if (normalized) this.emit('cie.log.received', normalized);
-    });
+    // Respostas de getEvent (eventos ativos) não entram no histórico: são
+    // consumidas por refreshActive(), que substitui a lista inteira.
 
     this.client.onConnectionStatus((connected) => {
       this.setConnected(connected);
@@ -273,7 +292,7 @@ export class CieStateService extends EventEmitter {
       this.setConnected(true);
       this.emit('cie.status.updated', this.getSnapshot());
       this.logService.reset();
-      this.warmupPromise = this.backfillAllTypes()
+      this.warmupPromise = this.warmup()
         .catch(() => {
           // ignore initial backfill failures
         })
@@ -295,6 +314,12 @@ export class CieStateService extends EventEmitter {
       if (this.backfillInFlight > 0) return;
       void this.refreshNow();
     }, this.options.pollMs);
+    if (!this.syncTimer) {
+      this.syncTimer = setInterval(() => {
+        if (this.backfillInFlight > 0 || this.isRestarting() || !this.snapshot.connected) return;
+        void this.periodicSync();
+      }, this.options.logSyncMs);
+    }
     if (!this.heartbeatTimer) {
       this.heartbeatTimer = setInterval(() => {
         if (this.isRestarting()) {
@@ -315,6 +340,10 @@ export class CieStateService extends EventEmitter {
     if (!this.pollTimer) return;
     clearInterval(this.pollTimer);
     this.pollTimer = null;
+    if (this.syncTimer) {
+      clearInterval(this.syncTimer);
+      this.syncTimer = null;
+    }
     if (this.heartbeatTimer) {
       clearInterval(this.heartbeatTimer);
       this.heartbeatTimer = null;
@@ -339,12 +368,13 @@ export class CieStateService extends EventEmitter {
       this.setConnected(true);
 
       const currentCounters = getCounters(status);
-      await this.handleCounterIncrements(this.previousCounters, currentCounters);
+      await this.handleCounterChanges(this.previousCounters, currentCounters);
       this.previousCounters = currentCounters;
 
       if (currentCounters.alarme > 0) {
         this.emit('cie.alarm.triggered', {
-          ...this.logService.alarmSnapshot(currentCounters),
+          ...this.logService.activeAlarmSnapshot(currentCounters),
+          situation: this.getSituation(),
           source: 'CIE2500',
           triggeredAt: new Date().toISOString(),
         });
@@ -358,6 +388,8 @@ export class CieStateService extends EventEmitter {
           counters: currentCounters,
           bipSilenced: isBipSilenced(status),
           latestFailureLogs: this.logService.latestByType('falha', 20),
+          activeFailures: this.logService.active('falha'),
+          situation: this.getSituation(),
         });
       }
 
@@ -400,7 +432,7 @@ export class CieStateService extends EventEmitter {
       this.setConnected(true);
       this.emit('cie.status.updated', this.getSnapshot());
       this.logService.reset();
-      this.warmupPromise = this.backfillAllTypes()
+      this.warmupPromise = this.warmup()
         .catch(() => {
           // ignore reconnect backfill failures
         })
@@ -479,24 +511,117 @@ export class CieStateService extends EventEmitter {
     }, delay);
   }
 
-  private async handleCounterIncrements(previous: StatusCounters, current: StatusCounters) {
-    if (current.alarme > previous.alarme) {
-      await this.backfillByRange('alarme', previous.alarme, current.alarme);
-    }
-    if (current.falha > previous.falha) {
-      await this.backfillByRange('falha', previous.falha, current.falha);
-    }
-    if (current.supervisao > previous.supervisao) {
-      await this.backfillByRange('supervisao', previous.supervisao, current.supervisao);
+  // Os contadores do status contam eventos ATIVOS (lidos com getEvent 1..N);
+  // o histórico (getLog) tem numeração própria em que 1 é o mais recente.
+  // Por isso uma mudança de contador relê a lista de ativos e sincroniza o
+  // histórico a partir do registro 1, em vez de usar o contador como índice.
+  private async handleCounterChanges(previous: StatusCounters, current: StatusCounters) {
+    for (const type of ACTIVE_TYPES) {
+      const changed = current[type] !== previous[type];
+      const stale = this.logService.active(type).length !== Math.min(current[type], this.options.activeEventsLimit);
+      const retryAt = this.activeRetryAt[type] ?? 0;
+      if (changed || (stale && Date.now() >= retryAt)) {
+        await this.refreshActive(type, current[type]);
+      }
+      if (changed && type !== 'bloqueio') {
+        await this.syncHistory(type);
+      }
     }
   }
 
-  private async backfillAllTypes() {
-    const initialLimit = Math.min(this.options.logBackfillLimit, 20);
-    await this.backfillLatestByLimit('alarme', initialLimit);
-    await this.backfillLatestByLimit('falha', initialLimit);
-    await this.backfillLatestByLimit('supervisao', initialLimit);
-    await this.backfillLatestByLimit('operacao', initialLimit);
+  private async warmup() {
+    for (const type of HISTORY_TYPES) {
+      await this.syncHistory(type);
+    }
+    const counters = this.getCounters();
+    for (const type of ACTIVE_TYPES) {
+      if (counters[type] > 0) await this.refreshActive(type, counters[type]);
+    }
+  }
+
+  // Operações não têm contador no status: só aparecem por esta leitura periódica.
+  private async periodicSync() {
+    for (const type of HISTORY_TYPES) {
+      await this.syncHistory(type);
+    }
+  }
+
+  /** Lê o histórico a partir do registro mais recente até encontrar um já conhecido. */
+  private async syncHistory(type: CieHistoricLogType): Promise<void> {
+    const running = this.syncHistoryByType[type];
+    if (running) return running;
+
+    const run = (async () => {
+      // Snapshot antes de ler: o listener onLog também grava cada resposta
+      // no ring, e não pode fazer o registro novo parecer "já conhecido".
+      const known = this.logService.knownKeys(type);
+      const cap = known.size > 0 ? this.options.logBackfillLimit : Math.min(this.options.logBackfillLimit, INITIAL_SYNC_LIMIT);
+
+      this.backfillInFlight += 1;
+      try {
+        for (let i = 1; i <= cap; i += 1) {
+          const raw = await this.client.getLog(type, i);
+          const total = Number(raw?.contador || 0);
+          if (!Number.isFinite(total) || total <= 0) return;
+
+          const log = this.logService.normalizeHistory(type, raw);
+          if (log && known.has(log.key)) return;
+
+          const added = this.logService.add(type, raw);
+          if (added) this.emit('cie.log.received', added);
+          if (i >= total) return;
+        }
+      } catch {
+        // keep sync resilient: tenta de novo no próximo ciclo
+      } finally {
+        this.backfillInFlight = Math.max(0, this.backfillInFlight - 1);
+      }
+    })().finally(() => {
+      delete this.syncHistoryByType[type];
+    });
+
+    this.syncHistoryByType[type] = run;
+    return run;
+  }
+
+  /** Relê a lista de eventos ativos de um tipo (getEvent 1..contador). */
+  private async refreshActive(type: CieActiveType, count: number) {
+    if (count <= 0) {
+      const hadItems = this.logService.active(type).length > 0;
+      this.logService.clearActive(type);
+      delete this.activeRetryAt[type];
+      if (hadItems) this.emit('cie.active.updated', { type, items: [], counters: this.getCounters() });
+      return;
+    }
+
+    const target = Math.min(count, this.options.activeEventsLimit);
+    const raws: any[] = [];
+    let failed = false;
+
+    this.backfillInFlight += 1;
+    try {
+      for (let i = 1; i <= target; i += 1) {
+        try {
+          raws.push(await this.client.getEvent(type, i));
+        } catch {
+          failed = true;
+          break;
+        }
+      }
+    } finally {
+      this.backfillInFlight = Math.max(0, this.backfillInFlight - 1);
+    }
+
+    // Sem resposta nenhuma, mantém a lista anterior e só tenta de novo depois
+    // de um ciclo de sync, para não martelar a central a cada poll.
+    if (raws.length === 0) {
+      this.activeRetryAt[type] = Date.now() + this.options.logSyncMs;
+      return;
+    }
+    this.activeRetryAt[type] = failed ? Date.now() + this.options.logSyncMs : 0;
+
+    const items = this.logService.setActive(type, raws);
+    this.emit('cie.active.updated', { type, items, counters: this.getCounters() });
   }
 
   async ensureLogs(type: CieLogType, limit: number): Promise<void> {
@@ -566,27 +691,6 @@ export class CieStateService extends EventEmitter {
       }
     } catch {
       // keep backfill resilient
-    } finally {
-      this.backfillInFlight = Math.max(0, this.backfillInFlight - 1);
-    }
-  }
-
-  private async backfillByRange(type: CieHistoricLogType, previousCounter: number, currentCounter: number) {
-    if (currentCounter <= 0) return;
-    const end = currentCounter;
-    const start = Math.max(1, Math.max(previousCounter + 1, end - this.options.logBackfillLimit + 1));
-
-    this.backfillInFlight += 1;
-    try {
-      for (let i = start; i <= end; i += 1) {
-        try {
-          const log = await this.client.getLog(type, i);
-          const normalized = this.logService.add(type, log);
-          if (normalized) this.emit('cie.log.received', normalized);
-        } catch {
-          // keep polling loop resilient
-        }
-      }
     } finally {
       this.backfillInFlight = Math.max(0, this.backfillInFlight - 1);
     }
