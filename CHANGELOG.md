@@ -21,6 +21,7 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 - Documentação Swagger das 6 rotas de leitura adicionada em `src/v3/openapi.json` (`securityScheme` `ApiToken`, tag `CIE`).
 
 ### Corrigido
+- Bloqueios fora da leitura de eventos ativos: em campo, `getEvent` para bloqueio devolve o último registro de operação repetido em todos os números (o ProgramadorCIE também não pede essa lista). `events.bloqueio` fica vazio; o número de bloqueios segue em `counters.bloqueio` e o detalhe em `/cie/counters/blocks`.
 - Novas falhas e alarmes podiam não ser lidos: o backfill usava o contador de eventos **ativos** como índice do **histórico** (em que 1 é o mais recente) e relia registros antigos. Agora o histórico é lido a partir do registro 1 até encontrar um já conhecido.
 - A categoria 3 do canal de eventos ativos (bloqueio) era sobrescrita como operação; cada canal agora tem o seu mapeamento.
 - Rótulos de dispositivo corrigidos conforme o ProgramadorCIE: tipo 12 "Saída Local" (antes saía "Acionador Manual"), tipo 10 "Sinalizador Audiovisual" e subtipos 5–13; o tipo tem prioridade sobre o subtipo, que chega com só 3 bits pelo UDP.

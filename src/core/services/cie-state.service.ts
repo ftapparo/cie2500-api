@@ -1,7 +1,7 @@
 import { EventEmitter } from 'node:events';
 import { spawn } from 'node:child_process';
 import type { CieClient } from '../cie-client';
-import { ACTIVE_TYPES, type CieLogService } from './cie-log.service';
+import type { CieLogService } from './cie-log.service';
 import { describePanelSituation } from './cie-event-catalog';
 import type {
   CieActiveType,
@@ -23,6 +23,11 @@ type StatusCounters = CieCounters;
 
 const HISTORY_TYPES: CieHistoricLogType[] = ['alarme', 'falha', 'supervisao', 'operacao'];
 const INITIAL_SYNC_LIMIT = 20;
+// A central não devolve a lista de bloqueios por getEvent: para "bloqueio" ela
+// responde o último registro de operação, repetido em todos os números
+// (visto em campo). O próprio ProgramadorCIE só pede alarme/falha/supervisão.
+// Bloqueio fica só no contador do status e em /counters/blocks.
+const FETCHABLE_ACTIVE_TYPES: Array<CieActiveType & CieHistoricLogType> = ['alarme', 'falha', 'supervisao'];
 
 function getCounters(status: any): StatusCounters {
   return {
@@ -516,14 +521,14 @@ export class CieStateService extends EventEmitter {
   // Por isso uma mudança de contador relê a lista de ativos e sincroniza o
   // histórico a partir do registro 1, em vez de usar o contador como índice.
   private async handleCounterChanges(previous: StatusCounters, current: StatusCounters) {
-    for (const type of ACTIVE_TYPES) {
+    for (const type of FETCHABLE_ACTIVE_TYPES) {
       const changed = current[type] !== previous[type];
       const stale = this.logService.active(type).length !== Math.min(current[type], this.options.activeEventsLimit);
       const retryAt = this.activeRetryAt[type] ?? 0;
       if (changed || (stale && Date.now() >= retryAt)) {
         await this.refreshActive(type, current[type]);
       }
-      if (changed && type !== 'bloqueio') {
+      if (changed) {
         await this.syncHistory(type);
       }
     }
@@ -534,7 +539,7 @@ export class CieStateService extends EventEmitter {
       await this.syncHistory(type);
     }
     const counters = this.getCounters();
-    for (const type of ACTIVE_TYPES) {
+    for (const type of FETCHABLE_ACTIVE_TYPES) {
       if (counters[type] > 0) await this.refreshActive(type, counters[type]);
     }
   }
