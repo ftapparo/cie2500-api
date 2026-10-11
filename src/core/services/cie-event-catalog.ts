@@ -248,13 +248,17 @@ export function describeDevice(
   typeCode: number | null,
   subtypeCode: number | null,
   deviceName: string | null,
+  subtypeTrusted = false,
 ): CieDeviceClassification | null {
   const typeLabel = typeCode !== null ? (DEVICE_TYPE_LABELS[typeCode] ?? null) : null;
   // Pelo UDP o subtipo chega com só 3 bits (config.js eventsUdp.device_subtype),
   // então valores 8–13 não são representáveis: o tipo sempre tem prioridade.
   const subtypeLabel = subtypeCode ? (DEVICE_SUBTYPE_LABELS[subtypeCode] ?? null) : null;
   const inferred = inferByName(deviceName);
-  const resolvedLabel = typeLabel || inferred || subtypeLabel || null;
+  // Com o subtipo vindo do cadastro da central (completo), saída local diz
+  // a função real: S2 é "Sirene Convencional", não só "Saída Local".
+  const resolvedLabel = (subtypeTrusted && typeCode === 12 && subtypeLabel)
+    || typeLabel || inferred || subtypeLabel || null;
 
   if (typeCode === null && subtypeCode === null && !resolvedLabel) return null;
 
@@ -268,42 +272,61 @@ export function describeDevice(
   };
 }
 
-// Convenção de nomes cadastrada na central do condomínio:
+// Convenção de nomes cadastrada na central do condomínio (CIE25000.cie):
 //   "16 ANDAR B T-B" → 16º andar, posição B no andar (A, B ou C), torre B
-//   "TERREO T-A"     → térreo da torre A
-//   "PRESSURIZA T-C" → pressurização da torre C
-//   "TORRE A"        → nome de regra (operações)
-// Fora da convenção ("ELEVADOR 1", "Saída Local S2") não há local: null.
-const FLOOR_RE = /^(\d{1,2})\s*ANDAR\s*([ABC])\s*T-?([ABC])$/i;
-const GROUND_RE = /^T[ÉE]RREO\s*T-?([ABC])$/i;
-const PRESSURE_RE = /^PRESSURIZA\S*\s*T-?([ABC])$/i;
-const TOWER_RE = /^TORRE\s*([ABC])$/i;
+//     (variações reais: "1ANDAR A T-A", "9 ANDAR AT-B")
+//   "TERREO T-A" / "TERREO A T-A" → térreo da torre A (com ou sem posição)
+//   "PRESSURIZA T-C" / "PRESSURIZ. T-A" / "PRESSURIAZ T-A" → pressurização da torre
+//   "MOD LIGA T A" / "MO DESLIGA T-A" / "M. DESLIGA T-C" → módulo da pressurização
+//   "GARAGEM 3" / "GARAGEM -2 F", "ELEVADOR 1", "ESTACIONAMENTOS" → áreas comuns
+//   "TORRE A" → torre (nome de zona/regra)
+// Fora disso o local vem da zona ou é null.
+const FLOOR_RE = /^(\d{1,2}) ?ANDAR ?([ABC]) ?T-? ?([ABC])$/;
+const GROUND_RE = /^T[ÉE]RREO(?: ([ABC]))? ?T-? ?([ABC])$/;
+const PRESSURE_RE = /^PRESSURI\S* ?T-? ?([ABC])$/;
+const PRESSURE_MODULE_RE = /^(?:MOD?\.?|M\.) ?(LIGA|DESLIGA) ?T-? ?([ABC])$/;
+const GARAGE_RE = /^GARAGEM ?(.*)$/;
+const ELEVATOR_RE = /^ELEVADOR ?(.*)$/;
+const PARKING_RE = /^ESTACIONAMENTOS?$/;
+const TOWER_RE = /^TORRE ?([ABC])$/;
 
-function place(tower: string | null, floor: number | null, position: string | null, area: string | null): CiePlace {
-  const t = tower?.toUpperCase() ?? null;
-  const p = position?.toUpperCase() ?? null;
+function place(
+  tower: string | null,
+  floor: number | null,
+  position: string | null,
+  area: string | null,
+  areaDetail: string | null = null,
+): CiePlace {
   return {
-    tower: t,
-    towerLabel: t ? `Torre ${t}` : null,
+    tower,
+    towerLabel: tower ? `Torre ${tower}` : null,
     floor,
     floorLabel: floor === null ? null : (floor === 0 ? 'Térreo' : `${floor}º andar`),
-    position: p,
-    positionLabel: p ? `Posição ${p}` : null,
+    position,
+    positionLabel: position ? `Posição ${position}` : null,
     area,
+    areaDetail,
   };
 }
 
-export function parsePlace(deviceName: string | null): CiePlace | null {
-  const name = deviceName?.trim();
-  if (!name) return null;
+export function parsePlace(name: string | null): CiePlace | null {
+  const n = name?.toUpperCase().replace(/\s+/g, ' ').trim();
+  if (!n) return null;
 
-  let m = name.match(FLOOR_RE);
+  let m = n.match(FLOOR_RE);
   if (m) return place(m[3], Number(m[1]), m[2], null);
-  m = name.match(GROUND_RE);
-  if (m) return place(m[1], 0, null, null);
-  m = name.match(PRESSURE_RE);
+  m = n.match(GROUND_RE);
+  if (m) return place(m[2], 0, m[1] ?? null, null);
+  m = n.match(PRESSURE_MODULE_RE);
+  if (m) return place(m[2], null, null, 'Pressurização', m[1] === 'LIGA' ? 'Módulo liga' : 'Módulo desliga');
+  m = n.match(PRESSURE_RE);
   if (m) return place(m[1], null, null, 'Pressurização');
-  m = name.match(TOWER_RE);
+  m = n.match(GARAGE_RE);
+  if (m) return place(null, null, null, 'Garagem', m[1] || null);
+  m = n.match(ELEVATOR_RE);
+  if (m) return place(null, null, null, 'Elevador', m[1] || null);
+  if (PARKING_RE.test(n)) return place(null, null, null, 'Estacionamentos');
+  m = n.match(TOWER_RE);
   if (m) return place(m[1], null, null, null);
   return null;
 }

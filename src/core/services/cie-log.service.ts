@@ -1,5 +1,6 @@
 import { trimNulls } from '../utils';
-import { describeDevice, describeEvent, parsePlace } from './cie-event-catalog';
+import { describeDevice, describeEvent } from './cie-event-catalog';
+import { findDevice, placeOf, ruleName, zoneName as zoneNameById } from './cie-installation';
 import type {
   AlarmActiveSnapshot,
   CieActiveEvents,
@@ -135,36 +136,56 @@ type DisplayInput = {
   address: number | null;
   zone: number | null;
   zoneName: string | null;
+  localOutput: string | null;
+  registeredName: string | null;
+  registeredZone: number | null;
 };
+
+// Operações em que o endereço do registro é o número de uma regra ou zona
+// (ex.: 49 "Regra Acionada" com endereço 7 = regra 7 "TORRE C").
+const RULE_OPERATIONS = new Set([8, 16, 20, 21, 34, 35, 36, 37, 48, 49, 52]);
+const ZONE_OPERATIONS = new Set([23, 38, 39]);
 
 // Cada dado em seu campo, já interpretado: o cliente só escolhe o layout.
 function buildDisplay(input: DisplayInput): CieLogDisplay {
-  const { event, device, deviceName, loop, address, zone, zoneName } = input;
+  const { event, device, deviceName, loop, address, zone, zoneName, localOutput, registeredName, registeredZone } = input;
 
-  // Em operações não há dispositivo: o nome é o da regra envolvida (ex.:
-  // "TORRE A") e o endereço é o número da regra, não uma posição no laço.
   if (event.category === 'operacao') {
+    const code = event.code ?? -1;
+    if (RULE_OPERATIONS.has(code) && address) {
+      const name = ruleName(address) ?? deviceName;
+      return {
+        title: event.label, device: null, deviceName, place: placeOf(null, name, null, null),
+        rule: { id: address, name }, loop: null, address: null, zone: null, zoneName: null,
+      };
+    }
+    if (ZONE_OPERATIONS.has(code) && address) {
+      const name = zoneNameById(address) ?? deviceName;
+      return {
+        title: event.label, device: null, deviceName, place: placeOf(null, name, address, name),
+        rule: null, loop: null, address: null, zone: address, zoneName: name,
+      };
+    }
     return {
-      title: event.label,
-      device: null,
-      deviceName,
-      place: parsePlace(deviceName),
-      loop: null,
-      address: null,
-      zone: null,
-      zoneName: null,
+      title: event.label, device: null, deviceName, place: null,
+      rule: null, loop: null, address: null, zone: null, zoneName: null,
     };
   }
 
   const onLoop = loop !== null && loop > 0;
+  const validZone = zone !== null && zone > 0 ? zone : null;
   return {
     title: event.label,
     device: device?.resolvedLabel ?? null,
     deviceName,
-    place: parsePlace(deviceName),
+    // Registro antigo pode ter nome genérico (ex.: "Acionador Man."): o endereço
+    // físico é o mesmo, então o local cai para o cadastro atual da central.
+    place: placeOf(loop, deviceName, validZone, zoneName, localOutput)
+      ?? placeOf(loop, registeredName, registeredZone, null, localOutput),
+    rule: null,
     loop: onLoop ? loop : null,
     address: onLoop ? address : null,
-    zone: zone !== null && zone > 0 ? zone : null,
+    zone: validZone,
     zoneName,
   };
 }
@@ -177,15 +198,15 @@ function normalize(raw: any, category: CieLogType, source: LogSource): Normalize
   if (isGarbageLogPayload(raw, address, zone, loop)) return null;
 
   const occurredAt = parseOccurredAt(raw);
-  const deviceName = normalizeString(raw?.nome_dispositivo);
-  const zoneName = normalizeString(raw?.nome_zona);
   const eventType = toNumber(raw?.tipo);
-  const deviceClassification = describeDevice(
-    toNumber(raw?.tipo_dispositivo),
-    toNumber(raw?.subtipo_dispositivo),
-    deviceName,
-  );
   const event = describeEvent(category, eventType);
+  // Cadastro da central completa o que o UDP não traz (operações não têm dispositivo).
+  const registered = category === 'operacao' ? null : findDevice(loop, address);
+  const deviceName = normalizeString(raw?.nome_dispositivo) ?? registered?.name ?? null;
+  const zoneName = normalizeString(raw?.nome_zona) ?? zoneNameById(zone);
+  const deviceClassification = registered
+    ? describeDevice(registered.type, registered.subtype, deviceName, true)
+    : describeDevice(toNumber(raw?.tipo_dispositivo), toNumber(raw?.subtipo_dispositivo), deviceName);
 
   return {
     key: `${category}:${id}:${address ?? 'na'}:${occurredAt}`,
@@ -206,7 +227,12 @@ function normalize(raw: any, category: CieLogType, source: LogSource): Normalize
     createdAt: Date.now(),
     source,
     event,
-    display: buildDisplay({ event, device: deviceClassification, deviceName, loop, address, zone, zoneName }),
+    display: buildDisplay({
+      event, device: deviceClassification, deviceName, loop, address, zone, zoneName,
+      localOutput: registered?.localOutput ?? null,
+      registeredName: registered?.name ?? null,
+      registeredZone: registered?.zone ?? null,
+    }),
     number: toNumber(raw?.numero),
     firstEvent: typeof raw?.primeiro_evento === 'boolean' ? raw.primeiro_evento : null,
     origin: toNumber(raw?.origem),

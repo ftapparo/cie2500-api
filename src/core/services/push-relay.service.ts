@@ -12,7 +12,13 @@ type EventLog = {
     title?: string;
     device?: string | null;
     deviceName?: string | null;
-    place?: { towerLabel?: string | null; floorLabel?: string | null; positionLabel?: string | null; area?: string | null } | null;
+    place?: {
+      towerLabel?: string | null;
+      floorLabel?: string | null;
+      positionLabel?: string | null;
+      area?: string | null;
+      areaDetail?: string | null;
+    } | null;
     loop?: number | null;
     address?: number | null;
   } | null;
@@ -84,7 +90,7 @@ const buildBody = (log: EventLog | undefined, fallbackLabel: string): string => 
   const display = log?.display;
   const place = display?.place;
   const placeLine = place
-    ? [place.towerLabel, place.area, place.floorLabel, place.positionLabel].filter(Boolean).join(', ')
+    ? [place.towerLabel, place.area, place.areaDetail, place.floorLabel, place.positionLabel].filter(Boolean).join(', ')
     : null;
   const device = display?.device || normalizeLabel(log?.deviceTypeLabel, 'Dispositivo');
   const deviceName = display?.deviceName || log?.deviceName;

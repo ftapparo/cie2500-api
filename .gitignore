@@ -8,3 +8,7 @@
 .env
 .env.*
 !.env.example
+
+# Configuracao exportada da central (ProgramadorCIE): contem as senhas de
+# nivel 2/3/4. Versionar so o JSON gerado por scripts/import-cie-config.js.
+*.cie

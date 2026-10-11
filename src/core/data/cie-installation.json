@@ -1,0 +1,3370 @@
+{
+  "source": "CIE25000.cie",
+  "model": "CIE2500",
+  "firmware": "4.1.3",
+  "installation": "NOVA RESIDENCE",
+  "defaultOutputs": {
+    "falha": {
+      "loop": 0,
+      "address": 10
+    }
+  },
+  "zones": [
+    {
+      "id": 1,
+      "name": "Zona Padrão",
+      "enabled": true
+    },
+    {
+      "id": 2,
+      "name": "TORRE A",
+      "enabled": true
+    },
+    {
+      "id": 3,
+      "name": "PRESSURIAZ T-A",
+      "enabled": true
+    },
+    {
+      "id": 4,
+      "name": "TORRE B",
+      "enabled": true
+    },
+    {
+      "id": 5,
+      "name": "PRESSURIZA T-B",
+      "enabled": true
+    },
+    {
+      "id": 6,
+      "name": "ESTACIONAMENTOS",
+      "enabled": true
+    },
+    {
+      "id": 7,
+      "name": "TORRE C",
+      "enabled": true
+    },
+    {
+      "id": 8,
+      "name": "PRESSURIZA T-C",
+      "enabled": true
+    }
+  ],
+  "rules": [
+    {
+      "id": 1,
+      "name": "Regra Padrão",
+      "enabled": true,
+      "inputs": [
+        {
+          "zone": 1
+        }
+      ],
+      "outputs": [
+        {
+          "zone": 1
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "TORRE A",
+      "enabled": true,
+      "inputs": [
+        {
+          "zone": 2
+        }
+      ],
+      "outputs": [
+        {
+          "loop": 0,
+          "address": 20
+        },
+        {
+          "loop": 1,
+          "address": 130
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "TORRE B",
+      "enabled": true,
+      "inputs": [
+        {
+          "zone": 4
+        }
+      ],
+      "outputs": [
+        {
+          "loop": 0,
+          "address": 20
+        },
+        {
+          "loop": 1,
+          "address": 132
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "PRESSURI T-A",
+      "enabled": true,
+      "inputs": [
+        {
+          "zone": 3
+        }
+      ],
+      "outputs": [
+        {
+          "loop": 1,
+          "address": 131
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "PRESSURIZA T-B",
+      "enabled": true,
+      "inputs": [
+        {
+          "zone": 5
+        }
+      ],
+      "outputs": [
+        {
+          "loop": 1,
+          "address": 133
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "ESTACIONAMENTO",
+      "enabled": true,
+      "inputs": [
+        {
+          "zone": 6
+        }
+      ],
+      "outputs": [
+        {
+          "loop": 0,
+          "address": 20
+        },
+        {
+          "loop": 0,
+          "address": 13
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "name": "TORRE C",
+      "enabled": true,
+      "inputs": [
+        {
+          "zone": 7
+        }
+      ],
+      "outputs": [
+        {
+          "loop": 0,
+          "address": 20
+        },
+        {
+          "loop": 2,
+          "address": 40
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "name": "PRESSURIZA T-C",
+      "enabled": true,
+      "inputs": [
+        {
+          "loop": 2,
+          "address": 157
+        }
+      ],
+      "outputs": [
+        {
+          "loop": 2,
+          "address": 41
+        }
+      ]
+    }
+  ],
+  "devices": [
+    {
+      "loop": 0,
+      "address": 10,
+      "type": 12,
+      "subtype": 12,
+      "zone": null,
+      "name": "Saída Local S1",
+      "enabled": true,
+      "localOutput": "S1",
+      "defaultOutput": true
+    },
+    {
+      "loop": 0,
+      "address": 13,
+      "type": 12,
+      "subtype": 12,
+      "zone": 6,
+      "name": "Saída Local S3",
+      "enabled": true,
+      "localOutput": "S3",
+      "defaultOutput": false
+    },
+    {
+      "loop": 0,
+      "address": 20,
+      "type": 12,
+      "subtype": 7,
+      "zone": 2,
+      "name": "Saída Local S2",
+      "enabled": true,
+      "localOutput": "S2",
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 1,
+      "type": 3,
+      "subtype": 3,
+      "zone": 6,
+      "name": "GARAGEM",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 2,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "1ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 3,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "1 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 4,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "1 ANDAR C T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 5,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "2 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 6,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "2 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 7,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "2 ANDAR C T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 8,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "3 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 9,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "3 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 10,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "3 ANDAR C T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 11,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "4 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 12,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "4 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 13,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "4 ANDAR C T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 14,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "5 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 15,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "5 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 16,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "5 ANDAR C T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 17,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "6 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 18,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "6 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 19,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "6 ANDAR C T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 20,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "7 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 21,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "7 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 22,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "7 ANDAR C T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 23,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "8 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 24,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "8 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 25,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "8 ANDAR C T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 26,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "9 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 27,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "9 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 28,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "9 ANDAR C T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 29,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "10 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 30,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "10 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 31,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "10 ANDAR C T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 32,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "11 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 33,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "11 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 34,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "11 ANDAR C T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 35,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "12 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 36,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "12 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 37,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "12 ANDAR C T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 38,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "13 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 39,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "13 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 40,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "13 ANDAR C T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 41,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "14 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 42,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "14 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 43,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "14 ANDAR C T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 44,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "15 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 45,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "15 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 46,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "15 ANDAR C T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 47,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "16 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 48,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "16 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 49,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "16 ANDAR C T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 50,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "TERREO A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 51,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "TERREO B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 52,
+      "type": 1,
+      "subtype": 1,
+      "zone": 2,
+      "name": "TERREO C T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 53,
+      "type": 1,
+      "subtype": 1,
+      "zone": 3,
+      "name": "PRESSURIZ. T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 54,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "1 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 55,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "1 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 56,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "1 ANDAR C T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 57,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "2 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 58,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "2 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 59,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "2 ANDAR C T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 60,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "3 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 61,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "3 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 62,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "3 ANDAR C T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 63,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "4 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 64,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "4 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 65,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "4 ANDAR C T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 66,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "5 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 67,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "5 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 68,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "5 ANDAR C T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 69,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "6 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 70,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "6 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 71,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "6 ANDAR C T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 72,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "7 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 73,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "7 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 74,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "7 ANDAR C T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 75,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "8 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 76,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "8 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 77,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "8 ANDAR C T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 78,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "9 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 79,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "9 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 80,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "9 ANDAR C T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 81,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "10 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 82,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "10 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 83,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "10 ANDAR C T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 84,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "11 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 85,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "11 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 86,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "11 ANDAR C T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 87,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "12 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 88,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "12 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 89,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "12 ANDAR C T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 90,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "13 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 91,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "13 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 92,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "13 ANDAR C T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 93,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "14 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 94,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "14 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 95,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "14 ANDAR C T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 96,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "15 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 97,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "15 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 98,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "15 ANDAR C T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 99,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "16 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 100,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "16 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 101,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "16 ANDAR C T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 102,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "TERREO A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 103,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "TERREO B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 104,
+      "type": 1,
+      "subtype": 1,
+      "zone": 4,
+      "name": "TERREO C T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 105,
+      "type": 1,
+      "subtype": 1,
+      "zone": 5,
+      "name": "PRESSURIZA T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 106,
+      "type": 3,
+      "subtype": 3,
+      "zone": 6,
+      "name": "GARAGEM 1",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 107,
+      "type": 3,
+      "subtype": 3,
+      "zone": 6,
+      "name": "GARAGEM 2",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 108,
+      "type": 3,
+      "subtype": 3,
+      "zone": 6,
+      "name": "GARAGEM 3",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 109,
+      "type": 3,
+      "subtype": 3,
+      "zone": 6,
+      "name": "ELEVADOR 1",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 110,
+      "type": 3,
+      "subtype": 3,
+      "zone": 6,
+      "name": "ELEVADOR 2",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 111,
+      "type": 3,
+      "subtype": 3,
+      "zone": 6,
+      "name": "ELEVADOR 3",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 112,
+      "type": 3,
+      "subtype": 3,
+      "zone": 6,
+      "name": "ELEVADOR 4",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 113,
+      "type": 3,
+      "subtype": 3,
+      "zone": 6,
+      "name": "ELEVADOR 5",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 114,
+      "type": 3,
+      "subtype": 3,
+      "zone": 6,
+      "name": "GARAGEM 4",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 115,
+      "type": 3,
+      "subtype": 3,
+      "zone": 6,
+      "name": "GARAGEM 5",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 116,
+      "type": 3,
+      "subtype": 3,
+      "zone": 6,
+      "name": "GARAGEM 6",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 117,
+      "type": 3,
+      "subtype": 3,
+      "zone": 6,
+      "name": "GARAGEM 7",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 118,
+      "type": 3,
+      "subtype": 3,
+      "zone": 6,
+      "name": "GARAGEM 8",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 119,
+      "type": 3,
+      "subtype": 3,
+      "zone": 6,
+      "name": "GARAGEM 9",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 120,
+      "type": 3,
+      "subtype": 3,
+      "zone": 6,
+      "name": "GARAGEM 10",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 121,
+      "type": 3,
+      "subtype": 3,
+      "zone": 6,
+      "name": "GARAGEM 11",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 122,
+      "type": 3,
+      "subtype": 3,
+      "zone": 6,
+      "name": "GARAGEM -2 F",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 123,
+      "type": 3,
+      "subtype": 3,
+      "zone": 6,
+      "name": "GARAGEM -1 F",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 124,
+      "type": 3,
+      "subtype": 3,
+      "zone": 6,
+      "name": "GARAGEM 0 F",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 125,
+      "type": 3,
+      "subtype": 3,
+      "zone": 6,
+      "name": "GARAGEM 1 F",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 126,
+      "type": 3,
+      "subtype": 3,
+      "zone": 6,
+      "name": "GARAGEM 2 A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 127,
+      "type": 3,
+      "subtype": 3,
+      "zone": 6,
+      "name": "GARAGEM 2 B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 128,
+      "type": 3,
+      "subtype": 3,
+      "zone": 6,
+      "name": "GARAGEM 2 C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 129,
+      "type": 3,
+      "subtype": 3,
+      "zone": 6,
+      "name": "GARAGEM -2F2",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 130,
+      "type": 9,
+      "subtype": 9,
+      "zone": 2,
+      "name": "MOD LIGA T A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 131,
+      "type": 9,
+      "subtype": 9,
+      "zone": 3,
+      "name": "MO DESLIGA T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 132,
+      "type": 9,
+      "subtype": 9,
+      "zone": 4,
+      "name": "MOD LIGA T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 133,
+      "type": 9,
+      "subtype": 9,
+      "zone": 5,
+      "name": "MO DESLIGA T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 158,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "1 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 159,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "1 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 160,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "2 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 161,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "2 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 162,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "3 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 163,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "3 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 164,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "4 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 165,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "4 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 166,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "5 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 167,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "5 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 168,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "6 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 169,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "6 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 170,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "7 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 171,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "7 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 172,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "8 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 173,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "8 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 174,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "9 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 175,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "9 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 176,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "10 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 177,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "10 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 178,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "11 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 179,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "11 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 180,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "12 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 181,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "12 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 182,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "13 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 183,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "13 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 184,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "14 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 185,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "14 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 186,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "15 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 187,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "15 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 188,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "16 ANDAR A T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 189,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "16 ANDAR B T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 190,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "1 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 191,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "1 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 192,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "2 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 193,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "2 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 194,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "3 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 195,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "3 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 196,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "4 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 197,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "4 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 198,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "5 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 199,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "5 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 200,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "6 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 201,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "6 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 202,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "7 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 204,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "8 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 205,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "8 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 206,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "9 ANDAR AT-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 207,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "9 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 208,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "10 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 209,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "10 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 210,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "11 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 211,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "11 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 212,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "12 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 213,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "12 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 214,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "13 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 215,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "13 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 216,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "14 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 217,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "14 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 218,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "15 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 219,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "15 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 220,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "16 ANDAR A T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 221,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "16 ANDAR B T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 222,
+      "type": 3,
+      "subtype": 3,
+      "zone": 2,
+      "name": "TERREO T-A",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 1,
+      "address": 223,
+      "type": 3,
+      "subtype": 3,
+      "zone": 4,
+      "name": "TERREO T-B",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 1,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "1 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 2,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "1 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 3,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "2 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 4,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "2 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 5,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "3 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 6,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "3 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 7,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "4 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 8,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "4 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 9,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "5 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 10,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "5 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 11,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "6 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 12,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "6 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 13,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "7 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 14,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "7 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 15,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "8 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 16,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "8 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 17,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "9 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 18,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "9 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 19,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "10 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 20,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "10 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 21,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "11 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 22,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "11 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 23,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "12 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 24,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "12 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 25,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "13 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 26,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "13 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 27,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "14 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 28,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "14 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 29,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "15 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 30,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "15 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 31,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "16 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 32,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "16 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 33,
+      "type": 3,
+      "subtype": 3,
+      "zone": 7,
+      "name": "TERREO T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 40,
+      "type": 9,
+      "subtype": 9,
+      "zone": 7,
+      "name": "MOD. LIGA T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 41,
+      "type": 9,
+      "subtype": 9,
+      "zone": 8,
+      "name": "M. DESLIGA T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 106,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "1 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 107,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "1 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 108,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "1 ANDAR C T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 109,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "2 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 110,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "2 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 111,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "2 ANDAR C T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 112,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "3 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 113,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "3 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 114,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "3 ANDAR C T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 115,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "4 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 116,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "4 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 117,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "4 ANDAR C T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 118,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "5 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 119,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "5 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 120,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "5 ANDAR C T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 121,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "6 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 122,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "6 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 123,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "6 ANDAR C T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 124,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "7 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 125,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "7 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 126,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "7 ANDAR C T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 127,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "8 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 128,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "8 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 129,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "8 ANDAR C T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 130,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "9 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 131,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "9 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 132,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "9 ANDAR C T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 133,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "10 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 134,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "10 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 135,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "10 ANDAR C T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 136,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "11 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 137,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "11 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 138,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "11 ANDAR C T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 139,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "12 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 140,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "12 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 141,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "12 ANDAR C T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 142,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "13 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 143,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "13 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 144,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "13 ANDAR C T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 145,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "14 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 146,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "14 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 147,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "14 ANDAR C T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 148,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "15 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 149,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "15 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 150,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "15 ANDAR C T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 151,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "16 ANDAR A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 152,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "16 ANDAR B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 153,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "16 ANDAR C T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 154,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "TERREO A T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 155,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "TERREO B T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 156,
+      "type": 1,
+      "subtype": 1,
+      "zone": 7,
+      "name": "TERREO C T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    },
+    {
+      "loop": 2,
+      "address": 157,
+      "type": 1,
+      "subtype": 1,
+      "zone": 8,
+      "name": "PRESSURIZA T-C",
+      "enabled": true,
+      "localOutput": null,
+      "defaultOutput": false
+    }
+  ]
+}

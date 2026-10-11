@@ -27,13 +27,17 @@ export type CiePlace = {
   position: string | null;
   positionLabel: string | null;
   area: string | null;
+  areaDetail: string | null;
 };
+
+export type CieRuleRef = { id: number; name: string | null };
 
 export type CieLogDisplay = {
   title: string;
   device: string | null;
   deviceName: string | null;
   place: CiePlace | null;
+  rule: CieRuleRef | null;
   loop: number | null;
   address: number | null;
   zone: number | null;

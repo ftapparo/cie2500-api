@@ -5,6 +5,7 @@ import type { CieManager } from '../../core/cie-manager';
 import { trimNulls } from '../../core/utils';
 import { successResponseSchema } from '../shared/response';
 import type { CieActiveType } from '../../types/logs';
+import { getInstallation } from '../../core/services/cie-installation';
 import {
     activeEventsDataSchema,
     activeTypeQuerySchema,
@@ -12,6 +13,7 @@ import {
     blockCountersSchema,
     cieStateSnapshotSchema,
     eventKindQuerySchema,
+    installationDataSchema,
     logsListDataSchema,
     logTypeQuerySchema,
     outputCountersSchema,
@@ -134,6 +136,12 @@ export async function cieRoutes(app: FastifyInstance, cieInstance: CieManager) {
             nextCursor: result.nextCursor,
             items: result.items,
         });
+    });
+
+    typedApp.get('/cie/installation', {
+        schema: { response: { 200: successResponseSchema(installationDataSchema) } },
+    }, async (_request, reply) => {
+        reply.ok(getInstallation());
     });
 
     typedApp.get('/cie/counters/blocks', {

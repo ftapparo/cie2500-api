@@ -238,7 +238,16 @@ Mesmas leituras, com os eventos já interpretados (tabela de códigos do Program
 - todo log traz `event` (`category`, `code`, `label`, `kind`, `severity`), `display` (cada dado em um campo: `title`, `device`, `deviceName`, `place` com torre/andar/posição, `loop`, `address`, `zone`, `zoneName`) e `source` (`historico` | `ativo`);
 - `GET /cie/events/active?type=` — eventos ativos agora (alarme, falha, supervisão, bloqueio);
 - `/cie/panel` e `/cie/alarms/active` trazem `situation` (situação geral pronta para exibir); `/cie/alarms/active` traz `activeAlarms`;
+- `GET /cie/installation` — cadastro da central (zonas, regras, dispositivos) com o local de cada dispositivo;
 - `/cie/logs` aceita `kind=` (`ativacao`, `restauracao`, `estado`, `informativo`).
+
+Os eventos são completados pelo cadastro da central em `src/core/data/cie-installation.json` (subtipo completo, nome da regra nas operações, local de cada endereço). Ele é gerado do arquivo `.cie` exportado pelo ProgramadorCIE — que **não** é versionado, por conter as senhas da central:
+
+```bash
+node scripts/import-cie-config.js CIE25000.cie
+```
+
+Rodar de novo sempre que a configuração da central mudar.
 
 Spec completo em `/v3/apispec_1.json`.
 
