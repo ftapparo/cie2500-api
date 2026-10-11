@@ -235,7 +235,7 @@ Base: `/v1/api`
 
 Mesmas leituras, com os eventos já interpretados (tabela de códigos do ProgramadorCIE em `src/core/services/cie-event-catalog.ts`):
 
-- todo log traz `event` (`category`, `code`, `label`, `kind`, `severity`), `display` (`title`, `description`, `location`) e `source` (`historico` | `ativo`);
+- todo log traz `event` (`category`, `code`, `label`, `kind`, `severity`), `display` (cada dado em um campo: `title`, `device`, `deviceName`, `place` com torre/andar/posição, `loop`, `address`, `zone`, `zoneName`) e `source` (`historico` | `ativo`);
 - `GET /cie/events/active?type=` — eventos ativos agora (alarme, falha, supervisão, bloqueio);
 - `/cie/panel` e `/cie/alarms/active` trazem `situation` (situação geral pronta para exibir); `/cie/alarms/active` traz `activeAlarms`;
 - `/cie/logs` aceita `kind=` (`ativacao`, `restauracao`, `estado`, `informativo`).

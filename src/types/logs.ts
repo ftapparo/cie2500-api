@@ -17,10 +17,27 @@ export type CieEventInfo = {
   severity: CieEventSeverity;
 };
 
+// Local interpretado do nome do dispositivo, pela convenção de cadastro do
+// condomínio: "16 ANDAR B T-B" = 16º andar, posição B no andar, torre B.
+export type CiePlace = {
+  tower: string | null;
+  towerLabel: string | null;
+  floor: number | null;
+  floorLabel: string | null;
+  position: string | null;
+  positionLabel: string | null;
+  area: string | null;
+};
+
 export type CieLogDisplay = {
   title: string;
-  description: string | null;
-  location: string | null;
+  device: string | null;
+  deviceName: string | null;
+  place: CiePlace | null;
+  loop: number | null;
+  address: number | null;
+  zone: number | null;
+  zoneName: string | null;
 };
 
 export type CieDeviceClassification = {

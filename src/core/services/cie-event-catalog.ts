@@ -7,6 +7,7 @@ import type {
   CieEventSeverity,
   CieLogType,
   CiePanelSituation,
+  CiePlace,
 } from '../../types/logs';
 
 // Textos e códigos copiados do software ProgramadorCIE da Intelbras
@@ -265,6 +266,46 @@ export function describeDevice(
     resolvedLabel,
     source: typeLabel ? 'codes' : (inferred ? 'name' : (subtypeLabel ? 'codes' : 'none')),
   };
+}
+
+// Convenção de nomes cadastrada na central do condomínio:
+//   "16 ANDAR B T-B" → 16º andar, posição B no andar (A, B ou C), torre B
+//   "TERREO T-A"     → térreo da torre A
+//   "PRESSURIZA T-C" → pressurização da torre C
+//   "TORRE A"        → nome de regra (operações)
+// Fora da convenção ("ELEVADOR 1", "Saída Local S2") não há local: null.
+const FLOOR_RE = /^(\d{1,2})\s*ANDAR\s*([ABC])\s*T-?([ABC])$/i;
+const GROUND_RE = /^T[ÉE]RREO\s*T-?([ABC])$/i;
+const PRESSURE_RE = /^PRESSURIZA\S*\s*T-?([ABC])$/i;
+const TOWER_RE = /^TORRE\s*([ABC])$/i;
+
+function place(tower: string | null, floor: number | null, position: string | null, area: string | null): CiePlace {
+  const t = tower?.toUpperCase() ?? null;
+  const p = position?.toUpperCase() ?? null;
+  return {
+    tower: t,
+    towerLabel: t ? `Torre ${t}` : null,
+    floor,
+    floorLabel: floor === null ? null : (floor === 0 ? 'Térreo' : `${floor}º andar`),
+    position: p,
+    positionLabel: p ? `Posição ${p}` : null,
+    area,
+  };
+}
+
+export function parsePlace(deviceName: string | null): CiePlace | null {
+  const name = deviceName?.trim();
+  if (!name) return null;
+
+  let m = name.match(FLOOR_RE);
+  if (m) return place(m[3], Number(m[1]), m[2], null);
+  m = name.match(GROUND_RE);
+  if (m) return place(m[1], 0, null, null);
+  m = name.match(PRESSURE_RE);
+  if (m) return place(m[1], null, null, 'Pressurização');
+  m = name.match(TOWER_RE);
+  if (m) return place(m[1], null, null, null);
+  return null;
 }
 
 type SituationInput = {

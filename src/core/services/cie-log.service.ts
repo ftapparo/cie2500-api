@@ -1,5 +1,5 @@
 import { trimNulls } from '../utils';
-import { describeDevice, describeEvent } from './cie-event-catalog';
+import { describeDevice, describeEvent, parsePlace } from './cie-event-catalog';
 import type {
   AlarmActiveSnapshot,
   CieActiveEvents,
@@ -137,32 +137,36 @@ type DisplayInput = {
   zoneName: string | null;
 };
 
-// Textos prontos para exibição, para web e apps não precisarem montar nada.
+// Cada dado em seu campo, já interpretado: o cliente só escolhe o layout.
 function buildDisplay(input: DisplayInput): CieLogDisplay {
   const { event, device, deviceName, loop, address, zone, zoneName } = input;
 
-  // Em operações não há dispositivo: o "nome" é o da regra/zona envolvida.
+  // Em operações não há dispositivo: o nome é o da regra envolvida (ex.:
+  // "TORRE A") e o endereço é o número da regra, não uma posição no laço.
   if (event.category === 'operacao') {
-    return { title: event.label, description: deviceName, location: null };
+    return {
+      title: event.label,
+      device: null,
+      deviceName,
+      place: parsePlace(deviceName),
+      loop: null,
+      address: null,
+      zone: null,
+      zoneName: null,
+    };
   }
 
-  const deviceLabel = device?.resolvedLabel ?? null;
-  const description = deviceLabel && deviceName && deviceLabel.toLowerCase() !== deviceName.toLowerCase()
-    ? `${deviceLabel} – ${deviceName}`
-    : (deviceName || deviceLabel);
-
-  const parts: string[] = [];
-  if (loop !== null && loop > 0) {
-    parts.push(`Laço ${loop}`);
-    if (address !== null) parts.push(`Endereço ${address}`);
-  }
-  if (zone !== null && zone > 0) {
-    parts.push(zoneName ? `Zona ${zone} – ${zoneName}` : `Zona ${zone}`);
-  } else if (zoneName) {
-    parts.push(zoneName);
-  }
-
-  return { title: event.label, description, location: parts.length ? parts.join(' · ') : null };
+  const onLoop = loop !== null && loop > 0;
+  return {
+    title: event.label,
+    device: device?.resolvedLabel ?? null,
+    deviceName,
+    place: parsePlace(deviceName),
+    loop: onLoop ? loop : null,
+    address: onLoop ? address : null,
+    zone: zone !== null && zone > 0 ? zone : null,
+    zoneName,
+  };
 }
 
 function normalize(raw: any, category: CieLogType, source: LogSource): NormalizedCieLog | null {

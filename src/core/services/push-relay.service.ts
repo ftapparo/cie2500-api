@@ -8,7 +8,14 @@ type EventLog = {
   deviceTypeLabel?: string | null;
   occurredAt?: string | null;
   event?: { label?: string; kind?: string } | null;
-  display?: { title?: string; description?: string | null; location?: string | null } | null;
+  display?: {
+    title?: string;
+    device?: string | null;
+    deviceName?: string | null;
+    place?: { towerLabel?: string | null; floorLabel?: string | null; positionLabel?: string | null; area?: string | null } | null;
+    loop?: number | null;
+    address?: number | null;
+  } | null;
 };
 
 type FireAlarmEventPayload = {
@@ -52,14 +59,6 @@ const normalizeLabel = (value: unknown, fallback = 'Não identificado'): string 
   return text || fallback;
 };
 
-const buildAddress = (log?: EventLog): string => {
-  const loopNumber = typeof log?.loop === 'number' ? log.loop : null;
-  const addressNumber = typeof log?.address === 'number' ? log.address : null;
-  const loop = loopNumber !== null && Number.isFinite(loopNumber) ? `L${loopNumber}` : 'L-';
-  const address = addressNumber !== null && Number.isFinite(addressNumber) ? `D${addressNumber}` : 'D-';
-  return `${loop}${address}`;
-};
-
 const formatDateTime = (value: unknown): string => {
   if (typeof value !== 'string' || !value.trim()) return 'Data/Hora indisponível';
   const parsed = new Date(value);
@@ -80,16 +79,26 @@ const pickEvent = (active: unknown, history: unknown): EventLog | undefined => {
     ?? historyLogs[0];
 };
 
+// Push é texto puro: uma informação por linha, montada dos campos separados de display.
 const buildBody = (log: EventLog | undefined, fallbackLabel: string): string => {
-  const description = log?.display?.description || normalizeLabel(log?.zoneName || log?.deviceName);
-  const eventLabel = log?.event?.label || fallbackLabel;
-  const location = log?.display?.location || `Laço/Endereço: ${buildAddress(log)}`;
+  const display = log?.display;
+  const place = display?.place;
+  const placeLine = place
+    ? [place.towerLabel, place.area, place.floorLabel, place.positionLabel].filter(Boolean).join(', ')
+    : null;
+  const device = display?.device || normalizeLabel(log?.deviceTypeLabel, 'Dispositivo');
+  const deviceName = display?.deviceName || log?.deviceName;
+  const panelLine = typeof display?.loop === 'number'
+    ? `Laço ${display.loop}, endereço ${display.address ?? '-'}`
+    : null;
+
   return [
-    description,
-    `${eventLabel} | Tipo: ${normalizeLabel(log?.deviceTypeLabel, 'Não informado')}`,
-    location,
+    log?.event?.label || fallbackLabel,
+    placeLine ? `Local: ${placeLine}` : null,
+    deviceName ? `${device}: ${deviceName}` : device,
+    panelLine,
     `Data/Hora: ${formatDateTime(log?.occurredAt)}`,
-  ].join('\n');
+  ].filter(Boolean).join('\n');
 };
 
 export class PushRelayService {
