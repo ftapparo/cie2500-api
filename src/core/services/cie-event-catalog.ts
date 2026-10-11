@@ -278,17 +278,27 @@ export function describeDevice(
 //   "TERREO T-A" / "TERREO A T-A" → térreo da torre A (com ou sem posição)
 //   "PRESSURIZA T-C" / "PRESSURIZ. T-A" / "PRESSURIAZ T-A" → pressurização da torre
 //   "MOD LIGA T A" / "MO DESLIGA T-A" / "M. DESLIGA T-C" → módulo da pressurização
-//   "GARAGEM 3" / "GARAGEM -2 F", "ELEVADOR 1", "ESTACIONAMENTOS" → áreas comuns
+//   "GARAGEM -2 F" / "GARAGEM -2F2" / "GARAGEM 0 F" → garagem no nível -2 (subsolo 2) / 0;
+//     a letra depois do nível não tem significado conhecido e vai crua em areaDetail
+//   "GARAGEM 3" (sem letra) → numeração sequencial do acionador, não é nível
+//   "ELEVADOR 1", "ESTACIONAMENTOS" → áreas comuns
 //   "TORRE A" → torre (nome de zona/regra)
 // Fora disso o local vem da zona ou é null.
 const FLOOR_RE = /^(\d{1,2}) ?ANDAR ?([ABC]) ?T-? ?([ABC])$/;
 const GROUND_RE = /^T[ÉE]RREO(?: ([ABC]))? ?T-? ?([ABC])$/;
 const PRESSURE_RE = /^PRESSURI\S* ?T-? ?([ABC])$/;
 const PRESSURE_MODULE_RE = /^(?:MOD?\.?|M\.) ?(LIGA|DESLIGA) ?T-? ?([ABC])$/;
+const GARAGE_LEVEL_RE = /^GARAGEM ?(-?\d+) ?([A-Z]\d*)$/;
 const GARAGE_RE = /^GARAGEM ?(.*)$/;
 const ELEVATOR_RE = /^ELEVADOR ?(.*)$/;
 const PARKING_RE = /^ESTACIONAMENTOS?$/;
 const TOWER_RE = /^TORRE ?([ABC])$/;
+
+function floorLabel(floor: number | null): string | null {
+  if (floor === null) return null;
+  if (floor === 0) return 'Térreo';
+  return floor < 0 ? `Subsolo ${-floor}` : `${floor}º andar`;
+}
 
 function place(
   tower: string | null,
@@ -301,7 +311,7 @@ function place(
     tower,
     towerLabel: tower ? `Torre ${tower}` : null,
     floor,
-    floorLabel: floor === null ? null : (floor === 0 ? 'Térreo' : `${floor}º andar`),
+    floorLabel: floorLabel(floor),
     position,
     positionLabel: position ? `Posição ${position}` : null,
     area,
@@ -321,6 +331,8 @@ export function parsePlace(name: string | null): CiePlace | null {
   if (m) return place(m[2], null, null, 'Pressurização', m[1] === 'LIGA' ? 'Módulo liga' : 'Módulo desliga');
   m = n.match(PRESSURE_RE);
   if (m) return place(m[1], null, null, 'Pressurização');
+  m = n.match(GARAGE_LEVEL_RE);
+  if (m) return place(null, Number(m[1]), null, 'Garagem', m[2]);
   m = n.match(GARAGE_RE);
   if (m) return place(null, null, null, 'Garagem', m[1] || null);
   m = n.match(ELEVATOR_RE);
