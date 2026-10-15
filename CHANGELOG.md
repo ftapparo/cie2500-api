@@ -32,6 +32,7 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 - Descrição do `securityScheme` e mensagens de erro 401 no spec público detalhavam o mecanismo interno de autenticação (nome do token, projetos envolvidos) — reduzidas a texto genérico, já que o spec é documentação pública exposta via Swagger UI.
 
 ### Alterado
+- Licença: de MIT para proprietária (todos os direitos reservados, uso exclusivo do Condomínio Nova Residence). Arquivo `LICENSE` criado; README e `package.json` (`UNLICENSED`) atualizados.
 - `CieManager.bindWebSocket(server, path?, options?)` aceita vários brokers (um por camada HTTP). Os listeners de estado — incluindo o relay de push de alarme/falha — são registrados uma única vez, para não duplicar push na API. `CieWsBroker` ganhou opções (`authorize`, `maxClients`, `heartbeatMs`, `version`); sem opções, o comportamento é o mesmo de antes.
 - Checagem do token de serviço extraída para `hasValidServiceToken()` (`src/v3/shared/service-auth.ts`), agora em tempo constante, reutilizada pelo hook HTTP e pelo upgrade do WebSocket.
 
